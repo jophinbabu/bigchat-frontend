@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-bg: rgba(255, 255, 255, 0.05);
+  }
+
+  body {
+    @apply text-base-content min-h-screen antialiased bg-[url('/global_bg.png?v=4')] bg-cover bg-center bg-no-repeat bg-fixed;
+  }
+}
+
+::selection {
+  background-color: oklch(var(--p) / 0.2);
+  color: oklch(var(--p));
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply backdrop-blur-xl bg-base-100/60 border border-base-200 shadow-xl;
+  }
+
+  .bg-glass {
+    @apply backdrop-blur-lg bg-base-100/60;
+  }
+
+  .glass-input {
+    @apply bg-transparent border-b-2 border-base-content/10 focus:border-primary transition-colors outline-none px-2 py-2;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+  }
+}
