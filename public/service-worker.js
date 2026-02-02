@@ -7,30 +7,28 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("push", function (event) {
-    const data = event.data.json();
+    let data;
+    try {
+        data = event.data.json();
+    } catch (e) {
+        data = { title: "New Message", body: "You have a new message" };
+    }
+
     const title = data.title || "New Message";
     const options = {
         body: data.body || "",
         icon: data.icon || "/logo.jpg",
         badge: "/logo.jpg",
+        vibrate: [100, 50, 100],
         data: {
             url: data.url || "/",
         },
     };
 
+    // Simplified: Always show notification. 
+    // Mobile browsers sometimes restrict 'clients.matchAll', so we prioritize delivery.
     event.waitUntil(
-        clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-            // Check if any window is currently focused
-            for (const client of clientList) {
-                if (client.focused) {
-                    // App is open and focused -> Do NOT show system notification
-                    // (Because the app will play its own sound/toast)
-                    return;
-                }
-            }
-            // If no window is focused, show notification
-            return self.registration.showNotification(title, options);
-        })
+        self.registration.showNotification(title, options)
     );
 });
 
