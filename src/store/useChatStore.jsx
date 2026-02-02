@@ -3,6 +3,8 @@ import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
 import { useAuthStore } from "./useAuthStore";
 
+import { encryptMessage, decryptMessage } from "../lib/encryption";
+
 export const useChatStore = create((set, get) => ({
   // --- Existing Chat State ---
   messages: [],
@@ -55,7 +57,12 @@ export const useChatStore = create((set, get) => ({
     set({ isMessagesLoading: true });
     try {
       const res = await axiosInstance.get(`/messages/${userId}`);
-      set({ messages: res.data });
+      // Decrypt messages here
+      const decryptedMessages = res.data.map(msg => ({
+        ...msg,
+        text: decryptMessage(msg.text)
+      }));
+      set({ messages: decryptedMessages });
     } catch (error) {
       toast.error(error.response.data.message);
     } finally {
@@ -66,11 +73,21 @@ export const useChatStore = create((set, get) => ({
   sendMessage: async (messageData) => {
     const { selectedUser, messages } = get();
     try {
+      // Encrypt text before sending
+      const encryptedData = {
+        ...messageData,
+        text: encryptMessage(messageData.text)
+      };
+
       const res = await axiosInstance.post(
         `/messages/send/${selectedUser._id}`,
-        messageData
+        encryptedData
       );
-      set({ messages: [...messages, res.data] });
+
+      // Decrypt the response just in case (though we usually just need the text we sent)
+      const newMessage = { ...res.data, text: decryptMessage(res.data.text) };
+
+      set({ messages: [...messages, newMessage] });
     } catch (error) {
       toast.error(error.response.data.message);
     }
@@ -106,8 +123,14 @@ export const useChatStore = create((set, get) => ({
         return;
       }
 
+      // Decrypt incoming message
+      const decryptedMessage = {
+        ...newMessage,
+        text: decryptMessage(newMessage.text)
+      };
+
       set({
-        messages: [...get().messages, newMessage],
+        messages: [...get().messages, decryptedMessage],
       });
       get().markMessagesAsRead(selectedUser._id);
     });
