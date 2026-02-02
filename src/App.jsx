@@ -18,7 +18,7 @@ import { playRingtone, stopRingtone } from "./lib/sounds"; // Import sound utils
 const App = () => {
   const { theme } = useThemeStore();
   const { authUser, checkAuth, isCheckingAuth, socket } = useAuthStore();
-  const { isCalling, isReceivingCall, setIncomingCall, resetCall } = useChatStore();
+  const { isCalling, isReceivingCall, setIncomingCall, resetCall, subscribeToPushNotifications } = useChatStore();
 
 
 
@@ -29,7 +29,27 @@ const App = () => {
     if ("Notification" in window) {
       Notification.requestPermission();
     }
+
+    // Register Service Worker
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(() => {
+          console.log("SW Registered");
+        })
+        .catch(err => console.log("SW Registration failed:", err));
+    }
   }, [checkAuth]);
+
+  // Re-trigger subscribe when authUser is definitely loaded
+  useEffect(() => {
+    if (authUser) {
+      // We need to call the store action. Since it is destructured, we can use it.
+      // But wait, the original code had it desturctured from useAuthStore? 
+      // No, I moved it to useChatStore in previous step.
+      // Let's ensure we use the one from useChatStore.
+      subscribeToPushNotifications();
+    }
+  }, [authUser, subscribeToPushNotifications]);
 
   // 2. Global Socket Listeners for Calls
   useEffect(() => {
