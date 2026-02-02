@@ -213,6 +213,7 @@ export const useChatStore = create((set, get) => ({
       if (!("PushManager" in window)) return;
 
       console.log("Attempting to subscribe to push...");
+      console.log("Current Notification Permission:", Notification.permission);
       const registration = await navigator.serviceWorker.ready;
       console.log("SW Registration found:", registration);
 
