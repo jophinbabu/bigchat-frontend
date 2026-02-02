@@ -212,7 +212,9 @@ export const useChatStore = create((set, get) => ({
       if (!("serviceWorker" in navigator)) return;
       if (!("PushManager" in window)) return;
 
+      console.log("Attempting to subscribe to push...");
       const registration = await navigator.serviceWorker.ready;
+      console.log("SW Registration found:", registration);
 
       const publicVapidKey = "BKoXL-qyfNqGnll4Pht0HwCWvzuWaDG5DEP4su9lOJ5FfpQysquPZskJXkaPoJGOxkbJxYkX3uf8krKXk7yEEEk"; // Same as backend
 
@@ -223,8 +225,10 @@ export const useChatStore = create((set, get) => ({
         applicationServerKey: convertedVapidKey
       });
 
+      console.log("Got Push Subscription:", subscription);
+
       await axiosInstance.post("/users/subscribe", { subscription });
-      console.log("Web Push Subscribed!");
+      console.log("Web Push Subscribed Successfully!");
 
     } catch (error) {
       console.error("Failed to subscribe to push notifications:", error);
