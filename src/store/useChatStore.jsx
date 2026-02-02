@@ -230,9 +230,11 @@ export const useChatStore = create((set, get) => ({
 
       await axiosInstance.post("/users/subscribe", { subscription });
       console.log("Web Push Subscribed Successfully!");
+      toast.success("Notifications Enabled!");
 
     } catch (error) {
       console.error("Failed to subscribe to push notifications:", error);
+      toast.error("Failed to enable notifications. Permission denied?");
     }
   },
 }));

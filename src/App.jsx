@@ -36,7 +36,12 @@ const App = () => {
         .then(() => {
           console.log("SW Registered");
         })
-        .catch(err => console.log("SW Registration failed:", err));
+        .catch(err => {
+          console.log("SW Registration failed:", err);
+          toast.error("Push Notification Setup Failed: " + err.message);
+        });
+    } else {
+      toast.error("Push Notifications Not Supported (Check HTTPS)");
     }
   }, [checkAuth]);
 
