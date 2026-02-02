@@ -85,6 +85,52 @@ const SettingsPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Notification Debugger Section */}
+      <div className="mt-10 p-6 bg-base-200 rounded-lg">
+        <h3 className="text-lg font-bold mb-4">Notification Debugger (Mobile)</h3>
+        <div className="flex flex-col gap-2 font-mono text-sm">
+          <p>Permission: <span className="font-bold">{Notification.permission}</span></p>
+          <p>Service Worker: <span className="font-bold">{"serviceWorker" in navigator ? "Supported" : "Not Supported"}</span></p>
+          <p>HTTPS: <span className="font-bold">{window.location.protocol === "https:" || window.location.hostname === "localhost" ? "Yes" : "No (Push requires HTTPS)"}</span></p>
+        </div>
+
+        <div className="mt-4 flex gap-4">
+          <button
+            className="btn btn-primary"
+            onClick={async () => {
+              // Manual Request
+              const permission = await Notification.requestPermission();
+              alert(`Msg Permission: ${permission}`);
+              if (permission === 'granted') {
+                // Trigger Subscription
+                import("../store/useChatStore").then(({ useChatStore }) => {
+                  useChatStore.getState().subscribeToPushNotifications();
+                  alert("Triggered Subscription. Check Toasts.");
+                });
+              }
+            }}
+          >
+            Enable Notifications
+          </button>
+
+          <button
+            className="btn btn-secondary"
+            onClick={() => {
+              if ("serviceWorker" in navigator) {
+                navigator.serviceWorker.register("/service-worker.js")
+                  .then(reg => alert("SW Registered: " + reg.scope))
+                  .catch(err => alert("SW Error: " + err.message));
+              } else {
+                alert("SW Not Supported");
+              }
+            }}
+          >
+            Re-Register SW
+          </button>
+        </div>
+        <p className="text-xs mt-2 text-base-content/60">Note: On Mobile, you must click 'Enable' manually if the automatic prompt was blocked.</p>
+      </div>
     </div>
   );
 };
