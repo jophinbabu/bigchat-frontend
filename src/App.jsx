@@ -13,15 +13,22 @@ import Navbar from "./components/Navbar";
 import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import CallModal from "./components/CallModal"; // Import Call Modal
+import { playRingtone, stopRingtone } from "./lib/sounds"; // Import sound utils
 
 const App = () => {
   const { theme } = useThemeStore();
   const { authUser, checkAuth, isCheckingAuth, socket } = useAuthStore();
   const { isCalling, isReceivingCall, setIncomingCall, resetCall } = useChatStore();
 
-  // 1. Check Authentication on Mount
+
+
+  // 1. Check Authentication & Permissions on Mount
   useEffect(() => {
     checkAuth();
+    // Request Notification Permission
+    if ("Notification" in window) {
+      Notification.requestPermission();
+    }
   }, [checkAuth]);
 
   // 2. Global Socket Listeners for Calls
@@ -31,16 +38,27 @@ const App = () => {
     // When someone calls us
     socket.on("callUser", (data) => {
       setIncomingCall(data);
+      playRingtone(); // Start ringing
+
+      // Show system notification
+      if (Notification.permission === "granted") {
+        new Notification("Incoming Call", {
+          body: `${data.name} is calling you...`,
+          icon: "/logo.jpg" // Optional: assume logo exists or use default
+        });
+      }
     });
 
     // When the call ends (or is rejected)
     socket.on("callEnded", () => {
       resetCall();
+      stopRingtone(); // Stop ringing
     });
 
     return () => {
       socket.off("callUser");
       socket.off("callEnded");
+      stopRingtone(); // Cleanup
     };
   }, [socket, setIncomingCall, resetCall]);
 

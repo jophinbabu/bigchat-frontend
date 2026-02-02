@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { useAuthStore } from "./useAuthStore";
 
 import { encryptMessage, decryptMessage } from "../lib/encryption";
+import { playNotificationSound } from "../lib/sounds"; // Import sound util
 
 export const useChatStore = create((set, get) => ({
   // --- Existing Chat State ---
@@ -119,7 +120,18 @@ export const useChatStore = create((set, get) => ({
         newMessage.sender.toString() === selectedUser._id.toString();
 
       if (!isMessageSentBySelectedUser) {
-        console.log("Message is not from selected user. Ignoring.");
+        // Notification Logic
+        playNotificationSound();
+        if (Notification.permission === "granted") {
+          // We might want to pass sender name if available, otherwise just "New Message"
+          // newMessage does typically contain some user info or we can fetch it. 
+          // Usually newMessage.sender is an ID, unless populated. 
+          // For now, generic notification.
+          new Notification("New Message", {
+            body: "You have a new message",
+            icon: "/logo.jpg"
+          });
+        }
         return;
       }
 
