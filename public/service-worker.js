@@ -10,7 +10,20 @@ self.addEventListener("push", function (event) {
         },
     };
 
-    event.waitUntil(self.registration.showNotification(title, options));
+    event.waitUntil(
+        clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+            // Check if any window is currently focused
+            for (const client of clientList) {
+                if (client.focused) {
+                    // App is open and focused -> Do NOT show system notification
+                    // (Because the app will play its own sound/toast)
+                    return;
+                }
+            }
+            // If no window is focused, show notification
+            return self.registration.showNotification(title, options);
+        })
+    );
 });
 
 self.addEventListener("notificationclick", function (event) {
