@@ -165,6 +165,8 @@ export const useAuthStore = create((set, get) => ({
           senderId = senderId.toString();
         }
 
+        console.log("Global Listener: Incrementing unread for", senderId);
+
         useChatStore.setState({
           unreadCounts: {
             ...unreadCounts,

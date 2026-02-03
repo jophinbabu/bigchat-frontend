@@ -13,6 +13,8 @@ const Sidebar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
 
+  console.log("Sidebar Rendered. UnreadCounts:", unreadCounts);
+
   // Load Recent Chats and Groups on Mount
   useEffect(() => {
     if (useAuthStore.getState().authUser) {
