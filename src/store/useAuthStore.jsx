@@ -159,8 +159,17 @@ export const useAuthStore = create((set, get) => ({
           });
         }
 
-        let senderId = newMessage.conversationId || newMessage.sender;
-        // Ensure senderId is a string key
+        // Determine correct key for unread counts
+        // If Group: Use conversationId (Group ID)
+        // If DM: Use sender (User ID) 
+        let senderId;
+        if (newMessage.isGroup) {
+          senderId = newMessage.conversationId;
+        } else {
+          senderId = newMessage.sender;
+        }
+
+        // Ensure key is a string
         if (senderId && typeof senderId !== "string") {
           senderId = senderId.toString();
         }
