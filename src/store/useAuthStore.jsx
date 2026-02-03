@@ -145,7 +145,14 @@ export const useAuthStore = create((set, get) => ({
 
       // If not in current chat, increment unread count
       if (!isMessageForCurrentChat) {
-        const senderId = newMessage.conversationId || newMessage.sender;
+        let senderId = newMessage.conversationId || newMessage.sender;
+        // Ensure senderId is a string key
+        if (senderId && typeof senderId !== "string") {
+          senderId = senderId.toString();
+        }
+
+        console.log("Adding unread for:", senderId);
+
         useChatStore.setState({
           unreadCounts: {
             ...unreadCounts,
