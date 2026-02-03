@@ -3,6 +3,7 @@ import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 import { useChatStore } from "./useChatStore";
+import { playNotificationSound } from "../lib/sounds";
 
 // Use dynamic base URL: Production (Vercel) vs Development (Vite Proxy)
 const BASE_URL = import.meta.env.VITE_API_URL || "/";
@@ -136,6 +137,10 @@ export const useAuthStore = create((set, get) => ({
     // Global listener to track unread messages when no chat is open
     socket.on("newMessage", (newMessage) => {
       const { selectedUser, unreadCounts } = useChatStore.getState();
+      const { authUser } = get();
+
+      // Ignore messages sent by self
+      if (newMessage.sender === authUser._id || newMessage.sender?._id === authUser._id) return;
 
       // Check if message is for current chat
       const isMessageForCurrentChat = selectedUser && (
@@ -143,15 +148,22 @@ export const useAuthStore = create((set, get) => ({
         newMessage.sender?.toString() === selectedUser._id?.toString()
       );
 
-      // If not in current chat, increment unread count
+      // If not in current chat: Notify & Increment Unread
       if (!isMessageForCurrentChat) {
+        // Notification Logic
+        playNotificationSound();
+        if (Notification.permission === "granted") {
+          new Notification("New Message", {
+            body: "You have a new message",
+            icon: "/logo.jpg"
+          });
+        }
+
         let senderId = newMessage.conversationId || newMessage.sender;
         // Ensure senderId is a string key
         if (senderId && typeof senderId !== "string") {
           senderId = senderId.toString();
         }
-
-        console.log("Adding unread for:", senderId);
 
         useChatStore.setState({
           unreadCounts: {

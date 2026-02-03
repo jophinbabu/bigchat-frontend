@@ -124,29 +124,19 @@ export const useChatStore = create((set, get) => ({
     socket.on("newMessage", (newMessage) => {
       console.log("New message received via socket:", newMessage);
 
+      // Ignore messages sent by self (safety check)
+      const authUser = useAuthStore.getState().authUser;
+      if (newMessage.sender === authUser?._id || newMessage.sender?._id === authUser?._id) return;
+
       const { selectedUser } = get();
-      if (!selectedUser) {
-        playNotificationSound(); // Notify if nothing open
-        if (Notification.permission === "granted") {
-          new Notification("New Message", { body: "You have a new message", icon: "/logo.jpg" });
-        }
-        return;
-      }
+      if (!selectedUser) return;
 
       const isMessageForCurrentChat =
         newMessage.conversationId === selectedUser._id || // Group Match
         newMessage.sender.toString() === selectedUser._id.toString(); // DM Match
 
       if (!isMessageForCurrentChat) {
-        // Notification Logic (sound and system notification handled here)
-        playNotificationSound();
-        if (Notification.permission === "granted") {
-          new Notification("New Message", {
-            body: "You have a new message",
-            icon: "/logo.jpg"
-          });
-        }
-        // Note: Unread count is handled by global listener in useAuthStore
+        // Global listener in useAuthStore handles notifications/unread counts
         return;
       }
 
