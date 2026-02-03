@@ -10,6 +10,9 @@ const AuthPage = ({ initialMode = "login" }) => {
     const [isLogin, setIsLogin] = useState(initialMode === "login");
     const [showPassword, setShowPassword] = useState(false);
 
+    const [showOtp, setShowOtp] = useState(false);
+    const [otp, setOtp] = useState("");
+
     // Login State
     const [loginData, setLoginData] = useState({
         email: "",
@@ -23,7 +26,7 @@ const AuthPage = ({ initialMode = "login" }) => {
         password: "",
     });
 
-    const { login, signup, isLoggingIn, isSigningUp } = useAuthStore();
+    const { login, signup, verifyEmail, isLoggingIn, isSigningUp } = useAuthStore();
     const navigate = useNavigate();
 
     const handleLoginSubmit = async (e) => {
@@ -31,7 +34,7 @@ const AuthPage = ({ initialMode = "login" }) => {
         login(loginData);
     };
 
-    const handleSignupSubmit = (e) => {
+    const handleSignupSubmit = async (e) => {
         e.preventDefault();
         if (!signupData.fullName.trim()) return toast.error("Full Name is required");
         if (!signupData.email.trim()) return toast.error("Email is required");
@@ -39,7 +42,18 @@ const AuthPage = ({ initialMode = "login" }) => {
         if (!signupData.password) return toast.error("Password is required");
         if (signupData.password.length < 6) return toast.error("Password must be at least 6 characters");
 
-        signup(signupData);
+        const success = await signup(signupData);
+        if (success) {
+            setShowOtp(true);
+        }
+    };
+
+    const handleVerifySubmit = async (e) => {
+        e.preventDefault();
+        if (otp.length !== 6) return toast.error("Enter a valid 6-digit code");
+
+        const success = await verifyEmail({ email: signupData.email, otp });
+        // Store handles redirect/auth state update on success
     };
 
     const containerVariants = {
@@ -180,104 +194,163 @@ const AuthPage = ({ initialMode = "login" }) => {
                             className="w-full max-w-md space-y-8 p-10 bg-base-100/40 backdrop-blur-2xl rounded-3xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] border border-white/10"
                         >
                             {/* Signup UI */}
-                            <div className="text-center mb-8">
-                                <motion.div variants={itemVariants} className="flex flex-col items-center gap-3 group">
-
-                                    <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-500 group-hover:rotate-12 shadow-inner">
-                                        <img src="/logo.jpg" className="size-16 rounded-2xl object-cover" alt="Logo" />
+                            {!showOtp ? (
+                                <>
+                                    <div className="text-center mb-8">
+                                        <motion.div variants={itemVariants} className="flex flex-col items-center gap-3 group">
+                                            <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-500 group-hover:rotate-12 shadow-inner">
+                                                <img src="/logo.jpg" className="size-16 rounded-2xl object-cover" alt="Logo" />
+                                            </div>
+                                            <h1 className="text-3xl font-bold mt-4 tracking-tight">Create Account</h1>
+                                            <p className="text-base-content/70 font-medium">Join our global community</p>
+                                        </motion.div>
                                     </div>
-                                    <h1 className="text-3xl font-bold mt-4 tracking-tight">Create Account</h1>
-                                    <p className="text-base-content/70 font-medium">Join our global community</p>
-                                </motion.div>
-                            </div>
 
-                            <form onSubmit={handleSignupSubmit} className="space-y-6">
-                                <motion.div variants={itemVariants} className="form-control">
-                                    <label className="label">
-                                        <span className="label-text font-semibold text-base-content/80">Full Name</span>
-                                    </label>
-                                    <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                            <User className="size-5 text-base-content/40 group-focus-within:text-primary transition-colors" />
-                                        </div>
-                                        <input
-                                            type="text"
-                                            className="input input-bordered w-full pl-12 bg-base-100/30 border-base-content/10 focus:border-primary/50 focus:bg-base-100/50 transition-all duration-300 rounded-xl"
-                                            placeholder="John Doe"
-                                            value={signupData.fullName}
-                                            onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
-                                        />
-                                    </div>
-                                </motion.div>
+                                    <form onSubmit={handleSignupSubmit} className="space-y-6">
+                                        <motion.div variants={itemVariants} className="form-control">
+                                            <label className="label">
+                                                <span className="label-text font-semibold text-base-content/80">Full Name</span>
+                                            </label>
+                                            <div className="relative group">
+                                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                    <User className="size-5 text-base-content/40 group-focus-within:text-primary transition-colors" />
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    className="input input-bordered w-full pl-12 bg-base-100/30 border-base-content/10 focus:border-primary/50 focus:bg-base-100/50 transition-all duration-300 rounded-xl"
+                                                    placeholder="John Doe"
+                                                    value={signupData.fullName}
+                                                    onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
+                                                />
+                                            </div>
+                                        </motion.div>
 
-                                <motion.div variants={itemVariants} className="form-control">
-                                    <label className="label">
-                                        <span className="label-text font-semibold text-base-content/80">Email</span>
-                                    </label>
-                                    <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                            <Mail className="size-5 text-base-content/40 group-focus-within:text-primary transition-colors" />
-                                        </div>
-                                        <input
-                                            type="email"
-                                            className="input input-bordered w-full pl-12 bg-base-100/30 border-base-content/10 focus:border-primary/50 focus:bg-base-100/50 transition-all duration-300 rounded-xl"
-                                            placeholder="you@example.com"
-                                            value={signupData.email}
-                                            onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                                        />
-                                    </div>
-                                </motion.div>
+                                        <motion.div variants={itemVariants} className="form-control">
+                                            <label className="label">
+                                                <span className="label-text font-semibold text-base-content/80">Email</span>
+                                            </label>
+                                            <div className="relative group">
+                                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                    <Mail className="size-5 text-base-content/40 group-focus-within:text-primary transition-colors" />
+                                                </div>
+                                                <input
+                                                    type="email"
+                                                    className="input input-bordered w-full pl-12 bg-base-100/30 border-base-content/10 focus:border-primary/50 focus:bg-base-100/50 transition-all duration-300 rounded-xl"
+                                                    placeholder="you@example.com"
+                                                    value={signupData.email}
+                                                    onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                                                />
+                                            </div>
+                                        </motion.div>
 
-                                <motion.div variants={itemVariants} className="form-control">
-                                    <label className="label">
-                                        <span className="label-text font-semibold text-base-content/80">Password</span>
-                                    </label>
-                                    <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                            <Lock className="size-5 text-base-content/40 group-focus-within:text-primary transition-colors" />
-                                        </div>
-                                        <input
-                                            type={showPassword ? "text" : "password"}
-                                            className="input input-bordered w-full pl-12 bg-base-100/30 border-base-content/10 focus:border-primary/50 focus:bg-base-100/50 transition-all duration-300 rounded-xl"
-                                            placeholder="••••••••"
-                                            value={signupData.password}
-                                            onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                                        />
-                                        <button
-                                            type="button"
-                                            className="absolute inset-y-0 right-0 pr-4 flex items-center hover:text-primary transition-colors"
-                                            onClick={() => setShowPassword(!showPassword)}
+                                        <motion.div variants={itemVariants} className="form-control">
+                                            <label className="label">
+                                                <span className="label-text font-semibold text-base-content/80">Password</span>
+                                            </label>
+                                            <div className="relative group">
+                                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                    <Lock className="size-5 text-base-content/40 group-focus-within:text-primary transition-colors" />
+                                                </div>
+                                                <input
+                                                    type={showPassword ? "text" : "password"}
+                                                    className="input input-bordered w-full pl-12 bg-base-100/30 border-base-content/10 focus:border-primary/50 focus:bg-base-100/50 transition-all duration-300 rounded-xl"
+                                                    placeholder="••••••••"
+                                                    value={signupData.password}
+                                                    onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="absolute inset-y-0 right-0 pr-4 flex items-center hover:text-primary transition-colors"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                >
+                                                    {showPassword ? <EyeOff className="size-5 text-base-content/40" /> : <Eye className="size-5 text-base-content/40" />}
+                                                </button>
+                                            </div>
+                                        </motion.div>
+
+                                        <motion.button
+                                            variants={itemVariants}
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            type="submit"
+                                            className="btn btn-primary w-full h-12 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300"
+                                            disabled={isSigningUp}
                                         >
-                                            {showPassword ? <EyeOff className="size-5 text-base-content/40" /> : <Eye className="size-5 text-base-content/40" />}
-                                        </button>
+                                            {isSigningUp ? (
+                                                <div className="flex items-center gap-2">
+                                                    <Loader2 className="size-5 animate-spin" />
+                                                    <span>Creating account...</span>
+                                                </div>
+                                            ) : "Create Account"}
+                                        </motion.button>
+                                    </form>
+
+                                    <motion.div variants={itemVariants} className="text-center pt-4">
+                                        <p className="text-base-content/60 font-medium">
+                                            Already have an account?{" "}
+                                            <button onClick={() => setIsLogin(true)} className="text-primary hover:underline font-bold transition-all">
+                                                Sign in
+                                            </button>
+                                        </p>
+                                    </motion.div>
+                                </>
+                            ) : (
+                                // OTP UI
+                                <>
+                                    <div className="text-center mb-8">
+                                        <motion.div variants={itemVariants} className="flex flex-col items-center gap-3 group">
+                                            <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center shadow-inner">
+                                                <Mail className="size-8 text-primary" />
+                                            </div>
+                                            <h1 className="text-3xl font-bold mt-4 tracking-tight">Verify Email</h1>
+                                            <p className="text-base-content/70 font-medium">Enter the 6-digit code sent to<br />{signupData.email}</p>
+                                        </motion.div>
                                     </div>
-                                </motion.div>
 
-                                <motion.button
-                                    variants={itemVariants}
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    type="submit"
-                                    className="btn btn-primary w-full h-12 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300"
-                                    disabled={isSigningUp}
-                                >
-                                    {isSigningUp ? (
-                                        <div className="flex items-center gap-2">
-                                            <Loader2 className="size-5 animate-spin" />
-                                            <span>Creating account...</span>
-                                        </div>
-                                    ) : "Create Account"}
-                                </motion.button>
-                            </form>
+                                    <form onSubmit={handleVerifySubmit} className="space-y-6">
+                                        <motion.div variants={itemVariants} className="form-control">
+                                            <label className="label">
+                                                <span className="label-text font-semibold text-base-content/80">Verification Code</span>
+                                            </label>
+                                            <div className="relative group">
+                                                <input
+                                                    type="text"
+                                                    className="input input-bordered w-full text-center text-2xl tracking-[0.5em] font-mono bg-base-100/30 border-base-content/10 focus:border-primary/50 focus:bg-base-100/50 transition-all duration-300 rounded-xl"
+                                                    placeholder="000000"
+                                                    maxLength={6}
+                                                    value={otp}
+                                                    onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                                                />
+                                            </div>
+                                        </motion.div>
 
-                            <motion.div variants={itemVariants} className="text-center pt-4">
-                                <p className="text-base-content/60 font-medium">
-                                    Already have an account?{" "}
-                                    <button onClick={() => setIsLogin(true)} className="text-primary hover:underline font-bold transition-all">
-                                        Sign in
-                                    </button>
-                                </p>
-                            </motion.div>
+                                        <motion.button
+                                            variants={itemVariants}
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            type="submit"
+                                            className="btn btn-primary w-full h-12 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300"
+                                            disabled={isLoggingIn}
+                                        >
+                                            {isLoggingIn ? (
+                                                <div className="flex items-center gap-2">
+                                                    <Loader2 className="size-5 animate-spin" />
+                                                    <span>Verifying...</span>
+                                                </div>
+                                            ) : "Verify Email"}
+                                        </motion.button>
+                                    </form>
+
+                                    <motion.div variants={itemVariants} className="text-center pt-4">
+                                        <p className="text-base-content/60 font-medium">
+                                            Wrong email?{" "}
+                                            <button onClick={() => setShowOtp(false)} className="text-primary hover:underline font-bold transition-all">
+                                                Go back
+                                            </button>
+                                        </p>
+                                    </motion.div>
+                                </>
+                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>
