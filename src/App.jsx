@@ -25,10 +25,10 @@ const App = () => {
   // 1. Check Authentication & Permissions on Mount
   useEffect(() => {
     checkAuth();
-    // Request Notification Permission
-    if ("Notification" in window) {
-      Notification.requestPermission();
-    }
+    // Request Notification Permission - REMOVED: User can enable from settings
+    // if ("Notification" in window) {
+    //   Notification.requestPermission();
+    // }
 
     // Register Service Worker
     if ("serviceWorker" in navigator) {
