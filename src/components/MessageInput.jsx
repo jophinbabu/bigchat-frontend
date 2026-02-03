@@ -291,20 +291,20 @@ const MessageInput = () => {
         )}
       </AnimatePresence>
 
-      <form onSubmit={handleSendMessage} className="flex items-center gap-2 sm:gap-3">
-        <div className="flex-1 flex gap-2">
+      <form onSubmit={handleSendMessage} className="flex items-center gap-1.5 sm:gap-3">
+        <div className="flex-1 flex gap-1.5 sm:gap-2">
           <div className="relative flex-1 group">
             {isRecording ? (
-              <div className="w-full h-12 bg-error/10 rounded-2xl flex items-center px-4 animate-pulse border border-error/20">
-                <div className="size-2 rounded-full bg-error animate-ping mr-3" />
-                <span className="text-sm font-black text-error uppercase tracking-widest flex-1">
+              <div className="w-full h-10 sm:h-12 bg-error/10 rounded-xl sm:rounded-2xl flex items-center px-3 sm:px-4 animate-pulse border border-error/20">
+                <div className="size-2 rounded-full bg-error animate-ping mr-2 sm:mr-3" />
+                <span className="text-xs sm:text-sm font-black text-error uppercase tracking-widest flex-1">
                   Recording... {formatDuration(recordingDuration)}
                 </span>
               </div>
             ) : (
               <input
                 type="text"
-                className="w-full input input-bordered rounded-2xl bg-base-content/5 border-none focus:ring-2 focus:ring-primary/50 transition-all text-sm h-12 pr-12"
+                className="w-full input input-bordered rounded-xl sm:rounded-2xl bg-base-content/5 border-none focus:ring-2 focus:ring-primary/50 transition-all text-sm h-10 sm:h-12 pr-10 sm:pr-12"
                 placeholder="Type a message..."
                 value={text}
                 onChange={handleInputChange}
@@ -315,12 +315,12 @@ const MessageInput = () => {
             {!isRecording && (
               <button
                 type="button"
-                className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all
+                className={`absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 rounded-lg sm:rounded-xl transition-all
                          ${imagePreview ? "text-primary bg-primary/10" : "text-base-content/40 hover:text-primary hover:bg-primary/5"}`}
                 onClick={() => fileInputRef.current?.click()}
                 disabled={audioBlob !== null}
               >
-                <Image size={20} />
+                <Image size={18} className="sm:w-5 sm:h-5" />
               </button>
             )}
           </div>
@@ -334,20 +334,20 @@ const MessageInput = () => {
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {!text.trim() && !imagePreview && !audioBlob && (
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               type="button"
               onClick={isRecording ? stopRecording : startRecording}
-              className={`btn size-12 min-h-0 rounded-2xl shadow-lg transition-all px-0
+              className={`btn size-10 sm:size-12 min-h-0 rounded-xl sm:rounded-2xl shadow-lg transition-all px-0
                 ${isRecording
                   ? "bg-error text-error-content hover:bg-error/90 ring-4 ring-error/20"
                   : "bg-primary/10 text-primary hover:bg-primary/20 hover:scale-105"
                 }`}
             >
-              {isRecording ? <Square size={20} className="fill-current" /> : <Mic size={20} />}
+              {isRecording ? <Square size={18} className="sm:w-5 sm:h-5 fill-current" /> : <Mic size={18} className="sm:w-5 sm:h-5" />}
             </motion.button>
           )}
 
@@ -356,9 +356,9 @@ const MessageInput = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               type="submit"
-              className="size-12 rounded-2xl shadow-lg bg-primary text-zinc-900 flex items-center justify-center transition-all hover:bg-primary/90"
+              className="size-10 sm:size-12 rounded-xl sm:rounded-2xl shadow-lg bg-primary text-zinc-900 flex items-center justify-center transition-all hover:bg-primary/90"
             >
-              <Send size={22} strokeWidth={2.5} />
+              <Send size={18} strokeWidth={2.5} className="sm:w-5 sm:h-5" />
             </motion.button>
           )}
         </div>
