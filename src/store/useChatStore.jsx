@@ -23,6 +23,7 @@ export const useChatStore = create((set, get) => ({
   callerSignal: null,     // WebRTC signal data
   callerId: null,         // User ID of the caller
   typingUser: null,       // User ID of the person typing to us
+  unreadCounts: {},       // Track unread message counts per user: { [userId]: count }
 
   // --- Message Actions ---
   getUsers: async () => {
@@ -145,6 +146,14 @@ export const useChatStore = create((set, get) => ({
             icon: "/logo.jpg"
           });
         }
+        // Increment unread count for this sender
+        const senderId = newMessage.conversationId || newMessage.sender;
+        set({
+          unreadCounts: {
+            ...get().unreadCounts,
+            [senderId]: (get().unreadCounts[senderId] || 0) + 1
+          }
+        });
         return;
       }
 
@@ -193,7 +202,16 @@ export const useChatStore = create((set, get) => ({
     socket.off("hideTyping");
   },
 
-  setSelectedUser: (selectedUser) => set({ selectedUser }),
+  setSelectedUser: (selectedUser) => {
+    if (selectedUser) {
+      // Clear unread count when selecting a user
+      const newUnreadCounts = { ...get().unreadCounts };
+      delete newUnreadCounts[selectedUser._id];
+      set({ selectedUser, unreadCounts: newUnreadCounts });
+    } else {
+      set({ selectedUser });
+    }
+  },
 
   // --- Call Actions (Added for Video Calls) ---
 

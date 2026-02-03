@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import CreateGroupModal from "./CreateGroupModal";
 
 const Sidebar = () => {
-  const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading, searchResults, searchUsers, isSearching, getGroups, groups, isGroupsLoading } = useChatStore();
+  const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading, searchResults, searchUsers, isSearching, getGroups, groups, isGroupsLoading, unreadCounts } = useChatStore();
   const { onlineUsers } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -75,6 +75,12 @@ const Sidebar = () => {
             className="absolute -bottom-0.5 -right-0.5 size-3.5 bg-green-500 
             rounded-full ring-2 ring-base-100 shadow-sm"
           />
+        )}
+        {/* Unread message badge */}
+        {unreadCounts[user._id] > 0 && (
+          <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-error text-error-content text-xs font-bold rounded-full flex items-center justify-center px-1 ring-2 ring-base-100 shadow-sm animate-pulse">
+            {unreadCounts[user._id] > 99 ? "99+" : unreadCounts[user._id]}
+          </span>
         )}
       </div>
 
