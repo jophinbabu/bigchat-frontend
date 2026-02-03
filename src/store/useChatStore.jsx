@@ -138,7 +138,7 @@ export const useChatStore = create((set, get) => ({
         newMessage.sender.toString() === selectedUser._id.toString(); // DM Match
 
       if (!isMessageForCurrentChat) {
-        // Notification Logic
+        // Notification Logic (sound and system notification handled here)
         playNotificationSound();
         if (Notification.permission === "granted") {
           new Notification("New Message", {
@@ -146,14 +146,7 @@ export const useChatStore = create((set, get) => ({
             icon: "/logo.jpg"
           });
         }
-        // Increment unread count for this sender
-        const senderId = newMessage.conversationId || newMessage.sender;
-        set({
-          unreadCounts: {
-            ...get().unreadCounts,
-            [senderId]: (get().unreadCounts[senderId] || 0) + 1
-          }
-        });
+        // Note: Unread count is handled by global listener in useAuthStore
         return;
       }
 
