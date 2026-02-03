@@ -19,6 +19,7 @@ export const useChatStore = create((set, get) => ({
   // --- New Call State (Added for Video Calls) ---
   isCalling: false,       // Are WE starting a call?
   isReceivingCall: false, // Is someone calling US?
+  isCallAccepted: false,  // Has the call been accepted?
   callerName: "",         // Name of the person calling us
   callerSignal: null,     // WebRTC signal data
   callerId: null,         // User ID of the caller
@@ -205,16 +206,21 @@ export const useChatStore = create((set, get) => ({
   setIncomingCall: (callData) =>
     set({
       isReceivingCall: true,
+      isCallAccepted: false,
       callerName: callData.name,
       callerSignal: callData.signal,
       callerId: callData.from,
     }),
+
+  // Accept the call
+  setCallAccepted: (status) => set({ isCallAccepted: status }),
 
   // Call this when call ends or is rejected
   resetCall: () =>
     set({
       isCalling: false,
       isReceivingCall: false,
+      isCallAccepted: false, // Reset
       callerName: "",
       callerSignal: null,
       callerId: null,

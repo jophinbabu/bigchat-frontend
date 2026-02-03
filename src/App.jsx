@@ -13,12 +13,13 @@ import Navbar from "./components/Navbar";
 import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import CallModal from "./components/CallModal"; // Import Call Modal
+import IncomingCall from "./components/IncomingCall"; // Import Incoming Call Modal
 import { playRingtone, stopRingtone } from "./lib/sounds"; // Import sound utils
 
 const App = () => {
   const { theme } = useThemeStore();
   const { authUser, checkAuth, isCheckingAuth, socket } = useAuthStore();
-  const { isCalling, isReceivingCall, setIncomingCall, resetCall, subscribeToPushNotifications } = useChatStore();
+  const { isCalling, isReceivingCall, setIncomingCall, resetCall, subscribeToPushNotifications, isCallAccepted } = useChatStore();
 
 
 
@@ -62,6 +63,12 @@ const App = () => {
 
     // When someone calls us
     socket.on("callUser", (data) => {
+      // If already in a call, send busy signal
+      if (isCalling || isReceivingCall) {
+        socket.emit("endCall", { to: data.from, reason: "busy" });
+        return;
+      }
+
       setIncomingCall(data);
       playRingtone(); // Start ringing
 
@@ -69,13 +76,21 @@ const App = () => {
       if (Notification.permission === "granted") {
         new Notification("Incoming Call", {
           body: `${data.name} is calling you...`,
-          icon: "/logo.jpg" // Optional: assume logo exists or use default
+          icon: "/logo.jpg"
         });
       }
     });
 
     // When the call ends (or is rejected)
-    socket.on("callEnded", () => {
+    socket.on("callEnded", (data) => {
+      if (data?.reason === "busy") {
+        toast.error("User is busy in another call.");
+      } else if (data?.reason === "declined") {
+        toast.error("Call declined.");
+      } else {
+        toast.success("Call ended.");
+      }
+
       resetCall();
       stopRingtone(); // Stop ringing
     });
@@ -85,7 +100,7 @@ const App = () => {
       socket.off("callEnded");
       stopRingtone(); // Cleanup
     };
-  }, [socket, setIncomingCall, resetCall]);
+  }, [socket, isCalling, isReceivingCall, setIncomingCall, resetCall]);
 
   // Loading State
   if (isCheckingAuth && !authUser) {
@@ -96,14 +111,12 @@ const App = () => {
     );
   }
 
-  // Determine if we should show the call screen
-  const showCallModal = isCalling || isReceivingCall;
+  // Determine call screen logic
+  const showCallModal = isCalling || isCallAccepted;
+  const showIncomingCall = isReceivingCall && !isCallAccepted;
 
   return (
     <div data-theme={theme}>
-      {/* 3. Render Call Modal globally over everything */}
-      {showCallModal && <CallModal />}
-
       <Navbar />
 
       <Routes>
@@ -116,6 +129,10 @@ const App = () => {
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/profile" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
       </Routes>
+
+      {/* Call Modals */}
+      {showCallModal && <CallModal />}
+      {showIncomingCall && <IncomingCall />}
 
       <Toaster />
     </div>

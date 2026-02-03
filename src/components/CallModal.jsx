@@ -7,9 +7,8 @@ import toast from "react-hot-toast";
 
 const CallModal = () => {
     const { socket, authUser } = useAuthStore();
-    const { isReceivingCall, callerSignal, callerName, callerId, selectedUser, resetCall } = useChatStore();
+    const { isReceivingCall, callerSignal, callerName, callerId, selectedUser, resetCall, isCallAccepted, setCallAccepted } = useChatStore();
 
-    const [callAccepted, setCallAccepted] = useState(false);
     const [stream, setStream] = useState(null);
 
     const myVideo = useRef();
@@ -81,9 +80,14 @@ const CallModal = () => {
         };
     }, []); // Run once on mount
 
-    const answerCall = () => {
-        setCallAccepted(true);
+    // Auto-answer if incoming call is accepted
+    useEffect(() => {
+        if (isReceivingCall && isCallAccepted && stream && !connectionRef.current) {
+            answerCall();
+        }
+    }, [isCallAccepted, isReceivingCall, stream]);
 
+    const answerCall = () => {
         const peer = new Peer({
             initiator: false,
             trickle: false,
@@ -125,7 +129,7 @@ const CallModal = () => {
                 </div>
 
                 {/* Their Video */}
-                {callAccepted ? (
+                {isCallAccepted ? (
                     <div className="relative bg-zinc-800 rounded-xl overflow-hidden aspect-video">
                         <video playsInline ref={userVideo} autoPlay className="w-full h-full object-cover" />
                         <p className="absolute bottom-2 left-2 bg-black/50 px-2 rounded text-white text-sm">
@@ -135,13 +139,8 @@ const CallModal = () => {
                 ) : (
                     <div className="flex flex-col items-center justify-center bg-zinc-800 rounded-xl aspect-video text-white animate-pulse">
                         <p className="text-xl font-bold mb-4">
-                            {isReceivingCall ? `${callerName} is calling...` : "Calling..."}
+                            Calling...
                         </p>
-                        {isReceivingCall && (
-                            <button onClick={answerCall} className="btn btn-success gap-2">
-                                <Phone size={20} /> Answer Call
-                            </button>
-                        )}
                     </div>
                 )}
             </div>
