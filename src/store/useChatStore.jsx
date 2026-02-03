@@ -114,6 +114,12 @@ export const useChatStore = create((set, get) => ({
 
     const socket = useAuthStore.getState().socket;
 
+    // Remove existing listeners first to prevent duplicates
+    socket.off("newMessage");
+    socket.off("messagesRead");
+    socket.off("displayTyping");
+    socket.off("hideTyping");
+
     socket.on("newMessage", (newMessage) => {
       console.log("New message received via socket:", newMessage);
 
