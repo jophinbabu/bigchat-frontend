@@ -2,19 +2,24 @@ import { useEffect, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
-import { Users, Search } from "lucide-react";
+import { Users, Search, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import CreateGroupModal from "./CreateGroupModal";
 
 const Sidebar = () => {
-  const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading, searchResults, searchUsers, isSearching } = useChatStore();
+  const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading, searchResults, searchUsers, isSearching, getGroups, groups, isGroupsLoading } = useChatStore();
   const { onlineUsers } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
 
-  // Load Recent Chats on Mount
+  // Load Recent Chats and Groups on Mount
   useEffect(() => {
-    if (useAuthStore.getState().authUser) getUsers();
-  }, [getUsers]);
+    if (useAuthStore.getState().authUser) {
+      getUsers();
+      getGroups();
+    }
+  }, [getUsers, getGroups]);
 
   // Debounced Global Search
   useEffect(() => {
@@ -31,6 +36,10 @@ const Sidebar = () => {
     const matchesSearch = user.fullName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesOnline = showOnlineOnly ? (onlineUsers.includes(user._id) || user.fullName === "Gemini AI") : true;
     return matchesSearch && matchesOnline;
+  });
+
+  const filteredGroups = groups.filter((group) => {
+    return group.groupName.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   // Helper to render user item
@@ -78,6 +87,43 @@ const Sidebar = () => {
     </motion.button>
   );
 
+  const renderGroupItem = (group, animateDelay = 0) => (
+    <motion.button
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2, delay: animateDelay }}
+      key={group._id}
+      onClick={() => {
+        // Adapt group object to fit selectedUser interface temporarily
+        // or ensure Store handles it. Store checks _id.
+        // We add fullName for display compatibility if needed, but easier to just use groupName in Header.
+        setSelectedUser({ ...group, fullName: group.groupName, profilePic: group.groupImage });
+      }}
+      className={`
+        w-full p-3 flex items-center gap-4 rounded-2xl
+        transition-all duration-300 group
+        ${selectedUser?._id === group._id
+          ? "bg-primary/10 text-primary shadow-sm"
+          : "hover:bg-base-content/5 text-base-content/70 hover:text-base-content active:bg-base-content/10"
+        }
+      `}
+    >
+      <div className="relative shrink-0">
+        <div className={`size-12 rounded-2xl flex items-center justify-center bg-base-300 ${selectedUser?._id === group._id ? "ring-2 ring-primary/20" : ""}`}>
+          <Users className="size-6 opacity-60" />
+        </div>
+      </div>
+
+      <div className="text-left min-w-0 flex-1">
+        <div className="font-bold truncate text-[15px]">{group.groupName}</div>
+        <div className="text-xs font-medium opacity-50 truncate">
+          {group.participants.length} members
+        </div>
+      </div>
+    </motion.button>
+  );
+
   const renderSkeleton = () => (
     Array(3).fill(null).map((_, idx) => (
       <div key={idx} className="w-full p-3 flex items-center gap-4">
@@ -101,9 +147,14 @@ const Sidebar = () => {
             </div>
             <span className="font-bold text-lg tracking-tight">Messages</span>
           </div>
-          <div className="text-xs font-semibold px-2 py-1 rounded-full bg-base-content/5 text-base-content/60">
-            {onlineUsers.length - 1} Online
-          </div>
+          {/* Add Group Button */}
+          <button
+            onClick={() => setIsGroupModalOpen(true)}
+            className="btn btn-circle btn-ghost btn-sm tooltip tooltip-bottom"
+            data-tip="Create Group"
+          >
+            <Plus className="size-5" />
+          </button>
         </div>
 
         {/* Search Bar */}
@@ -116,21 +167,6 @@ const Sidebar = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-        </div>
-
-        {/* Online filter toggle */}
-        <div className="flex items-center justify-between pt-1">
-          <label className="cursor-pointer flex items-center gap-2 group">
-            <input
-              type="checkbox"
-              checked={showOnlineOnly}
-              onChange={(e) => setShowOnlineOnly(e.target.checked)}
-              className="checkbox checkbox-xs checkbox-primary rounded-md transition-all"
-            />
-            <span className="text-xs font-medium text-base-content/60 group-hover:text-base-content/80 transition-colors">
-              Online only
-            </span>
-          </label>
         </div>
       </div>
 
@@ -155,10 +191,22 @@ const Sidebar = () => {
           </div>
         )}
 
+        {/* Groups */}
+        {!showOnlineOnly && filteredGroups.length > 0 && (
+          <div className="mb-2">
+            <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest px-4 mb-2">
+              Groups
+            </div>
+            <AnimatePresence>
+              {filteredGroups.map((group, idx) => renderGroupItem(group, idx * 0.05))}
+            </AnimatePresence>
+          </div>
+        )}
+
         {/* Recent Chats */}
         <div className="mb-2">
           <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest px-4 mb-2">
-            {searchQuery.trim().length > 0 ? "Matching Conversations" : "Recent Chats"}
+            {searchQuery.trim().length > 0 ? "Matching Conversations" : "Direct Messages"}
           </div>
 
           {isUsersLoading ? renderSkeleton() : (
@@ -175,6 +223,8 @@ const Sidebar = () => {
         </div>
 
       </div>
+
+      <CreateGroupModal isOpen={isGroupModalOpen} onClose={() => setIsGroupModalOpen(false)} />
     </aside>
   );
 };

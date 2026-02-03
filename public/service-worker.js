@@ -40,12 +40,14 @@ self.addEventListener("notificationclick", function (event) {
                 let client = clientList[0];
                 for (let i = 0; i < clientList.length; i++) {
                     if (clientList[i].focused) {
-                        client = clientList[i];
+                        return client.focus();
                     }
                 }
                 return client.focus();
             }
-            return clients.openWindow(event.notification.data.url);
+            if (clients.openWindow) {
+                return clients.openWindow(event.notification.data.url || '/');
+            }
         })
     );
 });

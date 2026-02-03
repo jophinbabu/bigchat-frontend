@@ -116,17 +116,24 @@ export const useChatStore = create((set, get) => ({
 
     socket.on("newMessage", (newMessage) => {
       console.log("New message received via socket:", newMessage);
-      const isMessageSentBySelectedUser =
-        newMessage.sender.toString() === selectedUser._id.toString();
 
-      if (!isMessageSentBySelectedUser) {
+      const { selectedUser } = get();
+      if (!selectedUser) {
+        playNotificationSound(); // Notify if nothing open
+        if (Notification.permission === "granted") {
+          new Notification("New Message", { body: "You have a new message", icon: "/logo.jpg" });
+        }
+        return;
+      }
+
+      const isMessageForCurrentChat =
+        newMessage.conversationId === selectedUser._id || // Group Match
+        newMessage.sender.toString() === selectedUser._id.toString(); // DM Match
+
+      if (!isMessageForCurrentChat) {
         // Notification Logic
         playNotificationSound();
         if (Notification.permission === "granted") {
-          // We might want to pass sender name if available, otherwise just "New Message"
-          // newMessage does typically contain some user info or we can fetch it. 
-          // Usually newMessage.sender is an ID, unless populated. 
-          // For now, generic notification.
           new Notification("New Message", {
             body: "You have a new message",
             icon: "/logo.jpg"
@@ -217,7 +224,9 @@ export const useChatStore = create((set, get) => ({
       const registration = await navigator.serviceWorker.ready;
       console.log("SW Registration found:", registration);
 
-      const publicVapidKey = "BKoXL-qyfNqGnll4Pht0HwCWvzuWaDG5DEP4su9lOJ5FfpQysquPZskJXkaPoJGOxkbJxYkX3uf8krKXk7yEEEk"; // Same as backend
+      // Fetch VAPID Key from backend
+      const res = await axiosInstance.get("/config/vapid-public-key");
+      const publicVapidKey = res.data.publicKey;
 
       const convertedVapidKey = urlBase64ToUint8Array(publicVapidKey);
 
@@ -235,6 +244,34 @@ export const useChatStore = create((set, get) => ({
     } catch (error) {
       console.error("Failed to subscribe to push notifications:", error);
       toast.error("Failed to enable notifications. Permission denied?");
+    }
+  },
+
+  // --- Group Chat Actions ---
+  groups: [],
+  isGroupsLoading: false,
+
+  getGroups: async () => {
+    set({ isGroupsLoading: true });
+    try {
+      const res = await axiosInstance.get("/groups");
+      set({ groups: res.data });
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to fetch groups");
+    } finally {
+      set({ isGroupsLoading: false });
+    }
+  },
+
+  createGroup: async (name, members) => {
+    try {
+      const res = await axiosInstance.post("/groups/create", { name, members });
+      set({ groups: [res.data, ...get().groups] });
+      toast.success("Group created successfully");
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to create group");
+      return false;
     }
   },
 }));
