@@ -132,6 +132,28 @@ export const useAuthStore = create((set, get) => ({
     socket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
     });
+
+    // Global listener to track unread messages when no chat is open
+    socket.on("newMessage", (newMessage) => {
+      const { selectedUser, unreadCounts } = useChatStore.getState();
+
+      // Check if message is for current chat
+      const isMessageForCurrentChat = selectedUser && (
+        newMessage.conversationId === selectedUser._id ||
+        newMessage.sender?.toString() === selectedUser._id?.toString()
+      );
+
+      // If not in current chat, increment unread count
+      if (!isMessageForCurrentChat) {
+        const senderId = newMessage.conversationId || newMessage.sender;
+        useChatStore.setState({
+          unreadCounts: {
+            ...unreadCounts,
+            [senderId]: (unreadCounts[senderId] || 0) + 1
+          }
+        });
+      }
+    });
   },
 
   disconnectSocket: () => {
