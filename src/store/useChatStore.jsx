@@ -313,6 +313,13 @@ export const useChatStore = create((set, get) => ({
   // --- Whiteboard Actions ---
   openWhiteboard: () => set({ isWhiteboardOpen: true }),
   closeWhiteboard: () => set({ isWhiteboardOpen: false }),
+
+  // --- Game Actions ---
+  isGameOpen: false,
+  gameSymbol: 'X', // 'X' or 'O'
+  setGameSymbol: (symbol) => set({ gameSymbol: symbol }),
+  openGame: () => set({ isGameOpen: true }),
+  closeGame: () => set({ isGameOpen: false, gameSymbol: 'X' }), // Reset to X default
 }));
 
 function urlBase64ToUint8Array(base64String) {

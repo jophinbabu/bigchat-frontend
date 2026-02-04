@@ -1,4 +1,4 @@
-import { Video, X, ArrowLeft, Users, Phone, Pen } from "lucide-react";
+import { Video, X, ArrowLeft, Users, Phone, Pen, Gamepad2 } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 
@@ -89,6 +89,16 @@ const ChatHeader = ({ onBack }) => {
                 title="Whiteboard"
               >
                 <Pen className="size-4 sm:size-5" />
+              </button>
+              <button
+                onClick={() => {
+                  useChatStore.getState().setGameSymbol('X'); // Initiator is X
+                  useChatStore.getState().openGame();
+                }}
+                className="btn btn-ghost btn-circle btn-sm text-primary hover:bg-primary/10"
+                title="Play Game"
+              >
+                <Gamepad2 className="size-4 sm:size-5" />
               </button>
             </>
           )}

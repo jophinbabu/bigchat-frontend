@@ -15,13 +15,15 @@ import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import CallModal from "./components/CallModal"; // Import Call Modal
 import IncomingCall from "./components/IncomingCall"; // Import Incoming Call Modal
+import IncomingCall from "./components/IncomingCall"; // Import Incoming Call Modal
 import WhiteboardModal from "./components/WhiteboardModal"; // Import Whiteboard Modal
+import GameModal from "./components/GameModal"; // Import Game Modal
 import { playRingtone, stopRingtone } from "./lib/sounds"; // Import sound utils
 
 const App = () => {
   const { theme } = useThemeStore();
   const { authUser, checkAuth, isCheckingAuth, socket } = useAuthStore();
-  const { isCalling, isReceivingCall, setIncomingCall, resetCall, subscribeToPushNotifications, isCallAccepted, isWhiteboardOpen, openWhiteboard } = useChatStore();
+  const { isCalling, isReceivingCall, setIncomingCall, resetCall, subscribeToPushNotifications, isCallAccepted, isWhiteboardOpen, openWhiteboard, isGameOpen, openGame } = useChatStore();
 
 
 
@@ -122,19 +124,33 @@ const App = () => {
       }
     });
 
+    socket.on("game-invite", (data) => {
+      if (!isGameOpen) {
+        if (data.sender && useChatStore.getState().selectedUser?._id !== data.sender._id) {
+          useChatStore.getState().setSelectedUser(data.sender);
+        }
+
+        // I am the receiver, so I am 'O'
+        useChatStore.getState().setGameSymbol('O');
+        useChatStore.getState().openGame();
+        toast(`${data.sender?.fullName || 'Partner'} invited you to play! 🎮`, { icon: '🎲' });
+      }
+    });
+
     return () => {
       socket.off("callUser");
       socket.off("callEnded");
       socket.off("whiteboard-open");
+      socket.off("game-invite");
       stopRingtone(); // Cleanup
     };
-  }, [socket, isCalling, isReceivingCall, setIncomingCall, resetCall, isWhiteboardOpen, openWhiteboard]);
+  }, [socket, isCalling, isReceivingCall, setIncomingCall, resetCall, isWhiteboardOpen, openWhiteboard, isGameOpen]);
 
   // Loading State
   if (isCheckingAuth && !authUser) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader className="size-10 animate-spin" />
+        <Loader2 className="size-10 animate-spin" />
       </div>
     );
   }
@@ -162,6 +178,7 @@ const App = () => {
       {showCallModal && <CallModal />}
       {showIncomingCall && <IncomingCall />}
       {isWhiteboardOpen && <WhiteboardModal />}
+      {isGameOpen && <GameModal />}
 
       <Toaster />
     </div>
