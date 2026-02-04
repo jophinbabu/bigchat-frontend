@@ -131,7 +131,8 @@ export const useChatStore = create((set, get) => ({
     socket.off("hideTyping");
 
     socket.on("newMessage", (newMessage) => {
-      console.log("New message received via socket:", newMessage);
+      console.log("New message received via socket:", { ...newMessage, text: newMessage.text?.substring(0, 10) + "..." });
+      console.log("🔍 Socket Message `isInvisible` flag:", newMessage.isInvisible);
 
       // Ignore messages sent by self (safety check)
       const authUser = useAuthStore.getState().authUser;
