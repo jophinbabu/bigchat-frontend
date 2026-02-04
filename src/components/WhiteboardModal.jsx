@@ -83,16 +83,25 @@ const WhiteboardModal = () => {
     }, []);
 
     const getCoords = (nativeEvent) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return { offsetX: 0, offsetY: 0 };
+
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
         if (nativeEvent.touches && nativeEvent.touches.length > 0) {
-            const rect = canvasRef.current.getBoundingClientRect();
             return {
-                offsetX: nativeEvent.touches[0].clientX - rect.left,
-                offsetY: nativeEvent.touches[0].clientY - rect.top
+                offsetX: (nativeEvent.touches[0].clientX - rect.left) * scaleX,
+                offsetY: (nativeEvent.touches[0].clientY - rect.top) * scaleY
             };
         }
+
+        // Mouse events: offsetX is properly relative to the element, but in CSS pixels.
+        // We need to scale it to canvas internal pixels.
         return {
-            offsetX: nativeEvent.offsetX,
-            offsetY: nativeEvent.offsetY
+            offsetX: nativeEvent.offsetX * scaleX,
+            offsetY: nativeEvent.offsetY * scaleY
         };
     };
 
@@ -156,22 +165,23 @@ const WhiteboardModal = () => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg p-4 shadow-xl flex flex-col gap-4 relative w-full max-w-4xl">
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+            <div className="bg-base-100 rounded-xl p-4 shadow-2xl flex flex-col gap-4 relative w-full max-w-4xl border border-base-300">
 
                 {/* Header / Tools */}
-                <div className="flex justify-between items-center bg-gray-100 p-2 rounded-lg">
+                <div className="flex flex-col sm:flex-row justify-between items-center bg-base-300 p-3 rounded-xl gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="flex gap-2">
+                        <div className="flex gap-3 items-center">
                             <input
                                 type="color"
                                 value={color}
                                 onChange={(e) => setColor(e.target.value)}
                                 disabled={tool === 'eraser'}
-                                className="w-8 h-8 cursor-pointer rounded overflow-hidden p-0 border-none"
+                                className="w-10 h-10 cursor-pointer rounded-lg overflow-hidden border-2 border-base-content/20 p-0"
+                                title="Choose Color"
                             />
                             <div className="flex flex-col justify-center w-24">
-                                <span className="text-xs text-black">Size: {lineWidth}</span>
+                                <span className="text-xs font-medium text-base-content/70 mb-1">Size: {lineWidth}px</span>
                                 <input
                                     type="range"
                                     min="1"
@@ -183,28 +193,31 @@ const WhiteboardModal = () => {
                             </div>
                         </div>
 
-                        <div className="flex gap-2 border-l pl-4 border-gray-300">
+                        <div className="flex gap-2 border-l pl-4 border-base-content/10">
                             <button
                                 onClick={() => setTool('pen')}
                                 className={`btn btn-sm btn-circle ${tool === 'pen' ? 'btn-primary' : 'btn-ghost'}`}
+                                title="Pen Tool"
                             >
                                 <Pen size={18} />
                             </button>
                             <button
                                 onClick={() => setTool('eraser')}
                                 className={`btn btn-sm btn-circle ${tool === 'eraser' ? 'btn-primary' : 'btn-ghost'}`}
+                                title="Eraser Tool"
                             >
                                 <Eraser size={18} />
                             </button>
                         </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 w-full sm:w-auto justify-end">
                         <button
                             onClick={clearCanvas}
-                            className="btn btn-sm btn-error text-white"
+                            className="btn btn-sm btn-error text-white shadow-sm"
+                            title="Clear Canvas"
                         >
-                            <Trash2 size={18} /> Clear
+                            <Trash2 size={16} /> Clear
                         </button>
                     </div>
                 </div>
@@ -227,9 +240,9 @@ const WhiteboardModal = () => {
                 {/* Close Button */}
                 <button
                     onClick={closeWhiteboard}
-                    className="absolute top-4 right-4 btn btn-circle btn-sm btn-ghost text-black hover:bg-black/10"
+                    className="absolute -top-3 -right-3 btn btn-circle btn-sm btn-error text-white shadow-lg z-50 border-2 border-white"
                 >
-                    <X size={24} />
+                    <X size={20} />
                 </button>
             </div>
         </div>
