@@ -21,7 +21,7 @@ const HomePage = () => {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="bg-base-100/10 backdrop-blur-2xl rounded-none md:rounded-3xl shadow-2xl w-full max-w-7xl h-full md:h-[calc(100vh-6rem)] border-0 md:border md:border-white/5 md:ring-1 md:ring-white/5"
+          className="bg-base-100/10 backdrop-blur-2xl rounded-none md:rounded-3xl shadow-2xl w-full max-w-7xl h-[calc(100vh-4rem)] md:h-[calc(100vh-6rem)] border-0 md:border md:border-white/5 md:ring-1 md:ring-white/5"
         >
           <div className="flex h-full rounded-none md:rounded-3xl overflow-hidden">
             {/* Sidebar - hidden on mobile when chat is selected */}
