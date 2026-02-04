@@ -96,11 +96,17 @@ const PictionaryModal = () => {
         const canvas = canvasRef.current;
         if (!canvas) return { x: 0, y: 0 };
         const rect = canvas.getBoundingClientRect();
+
+        // Calculate scale factor (Internal Resolution / Display Size)
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
         return {
-            x: clientX - rect.left,
-            y: clientY - rect.top
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
         };
     };
 
