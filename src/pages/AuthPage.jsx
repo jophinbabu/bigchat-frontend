@@ -218,7 +218,7 @@ const AuthPage = ({ initialMode = "login" }) => {
                                                 <input
                                                     type="text"
                                                     className="input input-bordered w-full pl-12 bg-base-100/30 border-base-content/10 focus:border-primary/50 focus:bg-base-100/50 transition-all duration-300 rounded-xl"
-                                                    placeholder="John Doe"
+                                                    placeholder="Enter your Name"
                                                     value={signupData.fullName}
                                                     onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
                                                 />
