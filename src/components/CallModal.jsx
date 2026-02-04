@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 
 const CallModal = () => {
     const { socket, authUser } = useAuthStore();
-    const { isReceivingCall, callerSignal, callerName, callerId, selectedUser, resetCall, isCallAccepted, setCallAccepted } = useChatStore();
+    const { isReceivingCall, callerSignal, callerName, callerId, selectedUser, resetCall, isCallAccepted, setCallAccepted, callType } = useChatStore();
 
     const [stream, setStream] = useState(null);
 
@@ -25,9 +25,13 @@ const CallModal = () => {
                     resetCall();
                     return;
                 }
-                currentStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                const constraints = {
+                    video: callType === "video",
+                    audio: true
+                };
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
                 setStream(currentStream);
-                if (myVideo.current) myVideo.current.srcObject = currentStream;
+                if (myVideo.current && callType === "video") myVideo.current.srcObject = currentStream;
 
                 if (!isReceivingCall && selectedUser) {
                     const peer = new Peer({
@@ -42,11 +46,12 @@ const CallModal = () => {
                             signalData: data,
                             from: authUser._id,
                             name: authUser.fullName,
+                            callType: callType,
                         });
                     });
 
                     peer.on("stream", (remoteStream) => {
-                        if (userVideo.current) userVideo.current.srcObject = remoteStream;
+                        if (userVideo.current && callType === "video") userVideo.current.srcObject = remoteStream;
                     });
 
                     socket.on("callAccepted", (signal) => {
@@ -99,7 +104,7 @@ const CallModal = () => {
         });
 
         peer.on("stream", (currentStream) => {
-            if (userVideo.current) userVideo.current.srcObject = currentStream;
+            if (userVideo.current && callType === "video") userVideo.current.srcObject = currentStream;
         });
 
         peer.signal(callerSignal);
@@ -122,16 +127,34 @@ const CallModal = () => {
         <div className="fixed inset-0 bg-black/80 z-50 flex flex-col items-center justify-center">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl p-4">
 
-                {/* My Video */}
-                <div className="relative bg-zinc-800 rounded-xl overflow-hidden aspect-video">
-                    <video playsInline muted ref={myVideo} autoPlay className="w-full h-full object-cover" />
-                    <p className="absolute bottom-2 left-2 bg-black/50 px-2 rounded text-white text-sm">Me</p>
+                {/* My Video / Avatar */}
+                <div className="relative bg-zinc-800 rounded-xl overflow-hidden aspect-video flex items-center justify-center">
+                    {callType === "video" ? (
+                        <video playsInline muted ref={myVideo} autoPlay className="w-full h-full object-cover" />
+                    ) : (
+                        <div className="avatar placeholder">
+                            <div className="bg-neutral text-neutral-content rounded-full w-24">
+                                <span className="text-3xl">{authUser?.fullName?.charAt(0).toUpperCase()}</span>
+                            </div>
+                        </div>
+                    )}
+                    <p className="absolute bottom-2 left-2 bg-black/50 px-2 rounded text-white text-sm">Me ({callType})</p>
                 </div>
 
-                {/* Their Video */}
+                {/* Their Video / Avatar */}
                 {isCallAccepted ? (
-                    <div className="relative bg-zinc-800 rounded-xl overflow-hidden aspect-video">
-                        <video playsInline ref={userVideo} autoPlay className="w-full h-full object-cover" />
+                    <div className="relative bg-zinc-800 rounded-xl overflow-hidden aspect-video flex items-center justify-center">
+                        {callType === "video" ? (
+                            <video playsInline ref={userVideo} autoPlay className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="avatar placeholder">
+                                <div className="bg-neutral text-neutral-content rounded-full w-24">
+                                    <span className="text-3xl">
+                                        {(isReceivingCall ? callerName : selectedUser?.fullName)?.charAt(0).toUpperCase()}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
                         <p className="absolute bottom-2 left-2 bg-black/50 px-2 rounded text-white text-sm">
                             {isReceivingCall ? callerName : selectedUser?.fullName}
                         </p>

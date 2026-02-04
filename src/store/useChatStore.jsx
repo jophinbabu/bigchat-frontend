@@ -23,6 +23,7 @@ export const useChatStore = create((set, get) => ({
   callerName: "",         // Name of the person calling us
   callerSignal: null,     // WebRTC signal data
   callerId: null,         // User ID of the caller
+  callType: null,         // "audio" or "video"
   typingUser: null,       // User ID of the person typing to us
   unreadCounts: {},       // Track unread message counts per user: { [userId]: count }
 
@@ -200,7 +201,7 @@ export const useChatStore = create((set, get) => ({
   // --- Call Actions (Added for Video Calls) ---
 
   // Call this when we click the "Video Icon" to start a call
-  setIsCalling: (status) => set({ isCalling: status }),
+  setIsCalling: (status, type = "video") => set({ isCalling: status, callType: type }),
 
   // Call this when the socket tells us "Incoming Call!"
   setIncomingCall: (callData) =>
@@ -210,6 +211,7 @@ export const useChatStore = create((set, get) => ({
       callerName: callData.name,
       callerSignal: callData.signal,
       callerId: callData.from,
+      callType: callData.callType || "video", // Default to video if not specified
     }),
 
   // Accept the call
@@ -224,6 +226,7 @@ export const useChatStore = create((set, get) => ({
       callerName: "",
       callerSignal: null,
       callerId: null,
+      callType: null,
     }),
 
   // --- Web Push Subscription ---

@@ -30,7 +30,9 @@ const IncomingCall = () => {
 
             <div className="text-center">
                 <h3 className="font-bold text-lg">{callerName}</h3>
-                <p className="text-sm text-base-content/70">Incoming Video Call...</p>
+                <p className="text-sm text-base-content/70">
+                    Incoming {useChatStore.getState().callType === "audio" ? "Voice" : "Video"} Call...
+                </p>
             </div>
 
             <div className="flex gap-8 mt-2">

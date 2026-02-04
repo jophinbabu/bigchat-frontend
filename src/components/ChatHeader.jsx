@@ -1,4 +1,4 @@
-import { Video, X, ArrowLeft, Users } from "lucide-react";
+import { Video, X, ArrowLeft, Users, Phone } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 
@@ -68,12 +68,20 @@ const ChatHeader = ({ onBack }) => {
         <div className="flex items-center gap-1 sm:gap-2">
           {/* Hide Video for Groups for now unless we implement Group Calls */}
           {!isGroup && (
-            <button
-              onClick={() => useChatStore.getState().setIsCalling(true)}
-              className="btn btn-ghost btn-circle btn-sm text-primary hover:bg-primary/10"
-            >
-              <Video className="size-5" />
-            </button>
+            <>
+              <button
+                onClick={() => useChatStore.getState().setIsCalling(true, "audio")}
+                className="btn btn-ghost btn-circle btn-sm text-primary hover:bg-primary/10"
+              >
+                <Phone className="size-5" />
+              </button>
+              <button
+                onClick={() => useChatStore.getState().setIsCalling(true, "video")}
+                className="btn btn-ghost btn-circle btn-sm text-primary hover:bg-primary/10"
+              >
+                <Video className="size-5" />
+              </button>
+            </>
           )}
 
           {/* Close button - hidden on mobile (use back instead) */}

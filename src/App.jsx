@@ -74,7 +74,7 @@ const App = () => {
 
       // Show system notification
       if (Notification.permission === "granted") {
-        new Notification("Incoming Call", {
+        new Notification(`Incoming ${data.callType === "audio" ? "Voice" : "Video"} Call`, {
           body: `${data.name} is calling you...`,
           icon: "/logo.jpg"
         });
