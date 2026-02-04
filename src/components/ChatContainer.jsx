@@ -38,20 +38,30 @@ const ChatContainer = ({ onBack }) => {
 
   if (isMessagesLoading) {
     return (
-      <div className="flex-1 flex flex-col overflow-auto bg-base-100/50">
-        <ChatHeader onBack={onBack} />
-        <MessageSkeleton />
-        <MessageInput />
+      <div className="flex-1 flex flex-col bg-base-100/50">
+        <div className="relative z-20">
+          <ChatHeader onBack={onBack} />
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          <MessageSkeleton />
+        </div>
+        <div className="p-3 sm:p-4 bg-base-100/40 backdrop-blur-md border-t border-base-content/5 relative z-20">
+          <MessageInput />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-auto bg-[url('/chat_bg.jpg?v=2')] bg-cover bg-center bg-no-repeat relative">
+    <div className="flex-1 flex flex-col bg-[url('/chat_bg.jpg?v=2')] bg-cover bg-center bg-no-repeat relative">
       <div className="absolute inset-0 bg-black/5 pointer-events-none" />
 
-      <ChatHeader onBack={onBack} />
+      {/* Fixed Header */}
+      <div className="relative z-20">
+        <ChatHeader onBack={onBack} />
+      </div>
 
+      {/* Scrollable Messages Area */}
       <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6 relative z-10">
         <AnimatePresence initial={false}>
           {messages.map((message, index) => {
@@ -172,7 +182,8 @@ const ChatContainer = ({ onBack }) => {
         <div ref={messageEndRef} />
       </div>
 
-      <div className="p-3 sm:p-4 bg-base-100/40 backdrop-blur-md border-t border-base-content/5">
+      {/* Fixed Input at Bottom */}
+      <div className="p-3 sm:p-4 bg-base-100/40 backdrop-blur-md border-t border-base-content/5 relative z-20">
         <MessageInput />
       </div>
     </div>

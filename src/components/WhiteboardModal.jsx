@@ -272,7 +272,7 @@ const WhiteboardModal = () => {
                 {/* Close Button */}
                 <button
                     onClick={closeWhiteboard}
-                    className="absolute -top-3 -right-3 btn btn-circle btn-sm btn-error text-white shadow-lg z-50 border-2 border-white"
+                    className="absolute top-2 right-2 btn btn-circle btn-sm btn-error text-white shadow-lg z-50"
                 >
                     <X size={20} />
                 </button>
