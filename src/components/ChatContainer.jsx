@@ -39,13 +39,13 @@ const ChatContainer = ({ onBack }) => {
   if (isMessagesLoading) {
     return (
       <div className="flex-1 flex flex-col bg-base-100/50">
-        <div className="relative z-20">
+        <div className="relative z-10 shadow-sm">
           <ChatHeader onBack={onBack} />
         </div>
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto px-3 py-4 sm:px-6 sm:py-6">
           <MessageSkeleton />
         </div>
-        <div className="p-3 sm:p-4 bg-base-100/40 backdrop-blur-md border-t border-base-content/5 relative z-20">
+        <div className="px-3 py-2.5 sm:px-4 sm:py-4 bg-base-100/95 backdrop-blur-xl border-t border-base-300/30 relative shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
           <MessageInput />
         </div>
       </div>
@@ -62,7 +62,7 @@ const ChatContainer = ({ onBack }) => {
       </div>
 
       {/* Scrollable Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6 relative">
+      <div className="flex-1 overflow-y-auto px-3 py-4 sm:px-6 sm:py-6 space-y-3 sm:space-y-4 relative">
         <AnimatePresence initial={false}>
           {messages.map((message, index) => {
             const isMe = message.sender.toString() === authUser._id.toString();
@@ -76,7 +76,7 @@ const ChatContainer = ({ onBack }) => {
                 className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
                 ref={messageEndRef}
               >
-                <div className={`flex gap-2 sm:gap-3 max-w-[90%] sm:max-w-[85%] ${isMe ? "flex-row-reverse" : "flex-row"}`}>
+                <div className={`flex gap-2 sm:gap-3 max-w-[85%] sm:max-w-[80%] ${isMe ? "flex-row-reverse" : "flex-row"}`}>
                   <div className="shrink-0 flex items-end mb-1 hidden sm:flex">
                     <img
                       src={isMe ? authUser.profilePic || "/avatar.png" : selectedUser.profilePic || "/avatar.png"}
@@ -88,10 +88,10 @@ const ChatContainer = ({ onBack }) => {
                   <div className="flex flex-col">
                     <div
                       className={`
-                        px-3 sm:px-4 py-2 sm:py-3 shadow-md
+                        px-3 py-2.5 sm:px-4 sm:py-3 rounded-2xl
                         ${isMe
-                          ? "bg-primary text-primary-content rounded-2xl rounded-tr-none"
-                          : "bg-base-100 text-base-content rounded-2xl rounded-tl-none border border-base-content/5"
+                          ? "bg-primary text-primary-content rounded-tr-md shadow-md"
+                          : "bg-base-100 text-base-content rounded-tl-md border border-base-300/40 shadow-sm"
                         }
                       `}
                     >
@@ -183,7 +183,7 @@ const ChatContainer = ({ onBack }) => {
       </div>
 
       {/* Fixed Input at Bottom */}
-      <div className="p-3 sm:p-4 bg-base-100/95 backdrop-blur-xl border-t border-base-300/30 relative shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+      <div className="px-3 py-2.5 sm:px-4 sm:py-4 bg-base-100/95 backdrop-blur-xl border-t border-base-300/30 relative shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
         <MessageInput />
       </div>
     </div>

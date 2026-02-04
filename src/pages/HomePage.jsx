@@ -16,14 +16,14 @@ const HomePage = () => {
   return (
     <div className="h-screen bg-[url('/home_bg.jpg')] bg-cover bg-center bg-no-repeat overflow-hidden relative">
       <div className="absolute inset-0 bg-black/40" />
-      <div className="flex items-center justify-center pt-20 px-2 sm:px-4 h-full relative z-10">
+      <div className="flex items-center justify-center pt-0 md:pt-20 px-0 md:px-4 h-full relative z-10">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="bg-base-100/10 backdrop-blur-2xl rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-7xl h-[calc(100vh-5rem)] sm:h-[calc(100vh-6rem)] border border-white/5 ring-1 ring-white/5"
+          className="bg-base-100/10 backdrop-blur-2xl rounded-none md:rounded-3xl shadow-2xl w-full max-w-7xl h-full md:h-[calc(100vh-6rem)] border-0 md:border md:border-white/5 md:ring-1 md:ring-white/5"
         >
-          <div className="flex h-full rounded-2xl sm:rounded-3xl overflow-hidden">
+          <div className="flex h-full rounded-none md:rounded-3xl overflow-hidden">
             {/* Sidebar - hidden on mobile when chat is selected */}
             <div className={`${selectedUser ? "hidden md:flex" : "flex"} h-full`}>
               <Sidebar />
