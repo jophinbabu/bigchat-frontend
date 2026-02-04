@@ -230,7 +230,7 @@ export const useChatStore = create((set, get) => ({
       callerName: callData.name,
       callerSignal: callData.signal,
       callerId: callData.from,
-      callType: callData.callType || "video", // Default to video if not specified
+      callType: callData.callType // Ensure this is captured
     }),
 
   // Accept the call

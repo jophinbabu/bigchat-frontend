@@ -64,8 +64,19 @@ const App = () => {
     if (!socket) return;
 
     // When someone calls us
+    // When someone calls us
     socket.on("callUser", (data) => {
-      // If already in a call, send busy signal
+      const { isCalling, isReceivingCall, callerId } = useChatStore.getState();
+
+      // 1. Check for duplicate/retry from same caller
+      // If we are already receiving a call from THIS person, ignore duplicates
+      if (isReceivingCall && callerId === data.from) {
+        console.log("Duplicate call signal received, ignoring");
+        return;
+      }
+
+      // 2. Genuine Busy Check
+      // If we are in a call OR receiving a call from SOMEONE ELSE
       if (isCalling || isReceivingCall) {
         socket.emit("endCall", { to: data.from, reason: "busy" });
         return;
