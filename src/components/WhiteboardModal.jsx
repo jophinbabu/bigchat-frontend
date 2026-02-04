@@ -18,12 +18,31 @@ const WhiteboardModal = () => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        // Set canvas size to match parent container (or fixed size for now)
-        canvas.width = 800; // Fixed size for easier sync
-        canvas.height = 600;
+        // Make canvas responsive - use container size
+        const updateCanvasSize = () => {
+            const container = canvas.parentElement;
+            if (!container) return;
+
+            const rect = container.getBoundingClientRect();
+            // Set canvas internal resolution to match display size
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+
+            // Reapply context settings after resize
+            const ctx = canvas.getContext('2d');
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = tool === 'eraser' ? '#ffffff' : color;
+            ctx.lineWidth = lineWidth;
+            ctxRef.current = ctx;
+        };
+
+        updateCanvasSize();
+        window.addEventListener('resize', updateCanvasSize);
 
         const ctx = canvas.getContext('2d');
         ctx.lineCap = 'round';
+        ctx.lineJoin = 'round'; // Smooth joins
         ctx.strokeStyle = color;
         ctx.lineWidth = lineWidth;
         ctxRef.current = ctx;
@@ -60,6 +79,7 @@ const WhiteboardModal = () => {
         }
 
         return () => {
+            window.removeEventListener('resize', updateCanvasSize);
             if (socket) {
                 socket.off("whiteboard-draw");
                 socket.off("whiteboard-clear");
@@ -107,6 +127,7 @@ const WhiteboardModal = () => {
 
     // Re-implementing drawing with specific coordinate tracking for reliable emission
     const lastPos = useRef({ x: 0, y: 0 });
+    const prevPos = useRef({ x: 0, y: 0 }); // For smooth curves
 
     const startDrawingReliable = (e) => {
         // Prevent scrolling on touch devices
@@ -116,6 +137,13 @@ const WhiteboardModal = () => {
 
         const { offsetX, offsetY } = getCoords(e.nativeEvent);
         lastPos.current = { x: offsetX, y: offsetY };
+        prevPos.current = { x: offsetX, y: offsetY };
+
+        // Start new path
+        const ctx = ctxRef.current;
+        ctx.beginPath();
+        ctx.moveTo(offsetX, offsetY);
+
         setIsDrawing(true);
     };
 
@@ -130,15 +158,17 @@ const WhiteboardModal = () => {
         const { offsetX, offsetY } = getCoords(e.nativeEvent);
         const ctx = ctxRef.current;
 
-        ctx.beginPath();
-        ctx.moveTo(lastPos.current.x, lastPos.current.y);
-        ctx.lineTo(offsetX, offsetY);
+        // Use quadratic curve for smoother drawing
+        const midX = (lastPos.current.x + offsetX) / 2;
+        const midY = (lastPos.current.y + offsetY) / 2;
+
+        ctx.quadraticCurveTo(lastPos.current.x, lastPos.current.y, midX, midY);
         ctx.stroke();
 
-        // Emit
+        // Emit for real-time sync
         if (socket && selectedUser) {
             socket.emit("whiteboard-draw", {
-                to: selectedUser._id, // Send to the other user
+                to: selectedUser._id,
                 prevX: lastPos.current.x,
                 prevY: lastPos.current.y,
                 currentX: offsetX,
@@ -165,11 +195,11 @@ const WhiteboardModal = () => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-            <div className="bg-base-100 rounded-xl p-4 shadow-2xl flex flex-col gap-4 relative w-full max-w-4xl border border-base-300">
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-2 sm:p-4">
+            <div className="bg-base-100 rounded-xl shadow-2xl flex flex-col gap-3 relative w-full h-full sm:h-auto sm:max-w-5xl border border-base-300 max-h-screen overflow-hidden">
 
                 {/* Header / Tools */}
-                <div className="flex flex-col sm:flex-row justify-between items-center bg-base-300 p-3 rounded-xl gap-4">
+                <div className="flex flex-col sm:flex-row justify-between items-center bg-base-300 px-3 py-2 rounded-xl gap-2 flex-shrink-0">
                     <div className="flex items-center gap-4">
                         <div className="flex gap-3 items-center">
                             <input
@@ -223,7 +253,7 @@ const WhiteboardModal = () => {
                 </div>
 
                 {/* Canvas Container */}
-                <div className="relative border-2 border-base-300 rounded-lg overflow-hidden bg-white cursor-crosshair touch-none" style={{ minHeight: '600px' }}>
+                <div className="relative border-2 border-base-300 rounded-lg overflow-hidden bg-white cursor-crosshair flex-1" style={{ minHeight: '400px' }}>
                     <canvas
                         ref={canvasRef}
                         onMouseDown={startDrawingReliable}
@@ -233,7 +263,8 @@ const WhiteboardModal = () => {
                         onTouchStart={startDrawingReliable}
                         onTouchEnd={finishDrawing}
                         onTouchMove={drawReliable}
-                        className="w-full h-full"
+                        className="w-full h-full block"
+                        style={{ touchAction: 'none' }}
                     />
                 </div>
 
