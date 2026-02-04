@@ -15,15 +15,21 @@ import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import CallModal from "./components/CallModal"; // Import Call Modal
 import IncomingCall from "./components/IncomingCall"; // Import Incoming Call Modal
-import IncomingCall from "./components/IncomingCall"; // Import Incoming Call Modal
 import WhiteboardModal from "./components/WhiteboardModal"; // Import Whiteboard Modal
 import GameModal from "./components/GameModal"; // Import Game Modal
+import PictionaryModal from "./components/PictionaryModal"; // Import Pictionary Modal
 import { playRingtone, stopRingtone } from "./lib/sounds"; // Import sound utils
 
 const App = () => {
   const { theme } = useThemeStore();
   const { authUser, checkAuth, isCheckingAuth, socket } = useAuthStore();
-  const { isCalling, isReceivingCall, setIncomingCall, resetCall, subscribeToPushNotifications, isCallAccepted, isWhiteboardOpen, openWhiteboard, isGameOpen, openGame } = useChatStore();
+  const {
+    isCalling, isReceivingCall, setIncomingCall, resetCall, subscribeToPushNotifications,
+    isCallAccepted,
+    isWhiteboardOpen, openWhiteboard,
+    isGameOpen, openGame,
+    isPictionaryOpen, openPictionary, setPictionaryRole
+  } = useChatStore();
 
 
 
@@ -137,14 +143,28 @@ const App = () => {
       }
     });
 
+    socket.on("pictionary-invite", (data) => {
+      if (!isPictionaryOpen) {
+        if (data.sender && useChatStore.getState().selectedUser?._id !== data.sender._id) {
+          useChatStore.getState().setSelectedUser(data.sender);
+        }
+
+        // I am invited, so I am the Guesser
+        useChatStore.getState().setPictionaryRole('guesser');
+        useChatStore.getState().openPictionary();
+        toast(`${data.sender?.fullName || 'Friend'} invited you to Pictionary! 🎨`, { icon: '🎨' });
+      }
+    });
+
     return () => {
       socket.off("callUser");
       socket.off("callEnded");
       socket.off("whiteboard-open");
       socket.off("game-invite");
+      socket.off("pictionary-invite");
       stopRingtone(); // Cleanup
     };
-  }, [socket, isCalling, isReceivingCall, setIncomingCall, resetCall, isWhiteboardOpen, openWhiteboard, isGameOpen]);
+  }, [socket, isCalling, isReceivingCall, setIncomingCall, resetCall, isWhiteboardOpen, openWhiteboard, isGameOpen, isPictionaryOpen]);
 
   // Loading State
   if (isCheckingAuth && !authUser) {
@@ -179,6 +199,7 @@ const App = () => {
       {showIncomingCall && <IncomingCall />}
       {isWhiteboardOpen && <WhiteboardModal />}
       {isGameOpen && <GameModal />}
+      {isPictionaryOpen && <PictionaryModal />}
 
       <Toaster />
     </div>

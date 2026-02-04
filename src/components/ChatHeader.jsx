@@ -1,4 +1,4 @@
-import { Video, X, ArrowLeft, Users, Phone, Pen, Gamepad2 } from "lucide-react";
+import { Video, X, ArrowLeft, Users, Phone, Pen, Gamepad2, Palette } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 
@@ -99,6 +99,21 @@ const ChatHeader = ({ onBack }) => {
                 title="Play Game"
               >
                 <Gamepad2 className="size-4 sm:size-5" />
+              </button>
+              <button
+                onClick={() => {
+                  const { authUser, socket } = useAuthStore.getState();
+                  const { selectedUser } = useChatStore.getState();
+                  useChatStore.getState().setPictionaryRole('drawer');
+                  useChatStore.getState().openPictionary();
+                  if (authUser && selectedUser && socket) {
+                    socket.emit("pictionary-invite", { to: selectedUser._id, sender: authUser });
+                  }
+                }}
+                className="btn btn-ghost btn-circle btn-sm text-secondary hover:bg-secondary/10"
+                title="Pictionary"
+              >
+                <Palette className="size-4 sm:size-5" />
               </button>
             </>
           )}

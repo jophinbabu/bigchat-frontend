@@ -320,6 +320,13 @@ export const useChatStore = create((set, get) => ({
   setGameSymbol: (symbol) => set({ gameSymbol: symbol }),
   openGame: () => set({ isGameOpen: true }),
   closeGame: () => set({ isGameOpen: false, gameSymbol: 'X' }), // Reset to X default
+
+  // --- Pictionary Actions ---
+  isPictionaryOpen: false,
+  pictionaryRole: 'drawer', // 'drawer' or 'guesser'
+  setPictionaryRole: (role) => set({ pictionaryRole: role }),
+  openPictionary: () => set({ isPictionaryOpen: true }),
+  closePictionary: () => set({ isPictionaryOpen: false }),
 }));
 
 function urlBase64ToUint8Array(base64String) {
