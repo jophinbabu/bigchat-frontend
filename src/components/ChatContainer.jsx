@@ -57,12 +57,12 @@ const ChatContainer = ({ onBack }) => {
       <div className="absolute inset-0 bg-black/5 pointer-events-none" />
 
       {/* Fixed Header */}
-      <div className="relative z-20">
+      <div className="relative z-10 shadow-sm">
         <ChatHeader onBack={onBack} />
       </div>
 
       {/* Scrollable Messages Area */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6 relative z-10">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6 relative">
         <AnimatePresence initial={false}>
           {messages.map((message, index) => {
             const isMe = message.sender.toString() === authUser._id.toString();
@@ -183,7 +183,7 @@ const ChatContainer = ({ onBack }) => {
       </div>
 
       {/* Fixed Input at Bottom */}
-      <div className="p-3 sm:p-4 bg-base-100/40 backdrop-blur-md border-t border-base-content/5 relative z-20">
+      <div className="p-3 sm:p-4 bg-base-100/95 backdrop-blur-xl border-t border-base-300/30 relative shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
         <MessageInput />
       </div>
     </div>

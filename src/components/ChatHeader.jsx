@@ -21,7 +21,7 @@ const ChatHeader = ({ onBack }) => {
     : 0;
 
   return (
-    <div className="px-3 sm:px-4 py-3 border-b border-base-300 bg-base-100/80 backdrop-blur-md sticky top-0 z-10">
+    <div className="px-3 sm:px-4 py-3 sm:py-3.5 border-b border-base-300/30 bg-base-100/90 backdrop-blur-xl shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Back button - visible on mobile */}
