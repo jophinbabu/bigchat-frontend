@@ -15,11 +15,18 @@ export const playNotificationSound = () => {
 
 let ringtoneAudio = null;
 
-export const playRingtone = () => {
+export const playRingtone = async () => {
     if (ringtoneAudio) return; // Already playing
     ringtoneAudio = new Audio(CALL_SOUND);
     ringtoneAudio.loop = true;
-    ringtoneAudio.play().catch((err) => console.log("Ringtone play failed:", err));
+    try {
+        await ringtoneAudio.play();
+    } catch (err) {
+        // Ignore AbortError (happens if stopped immediately)
+        if (err.name !== "AbortError") {
+            console.log("Ringtone play failed:", err);
+        }
+    }
 };
 
 export const stopRingtone = () => {
