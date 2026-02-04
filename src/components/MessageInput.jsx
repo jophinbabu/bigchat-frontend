@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import { axiosInstance } from "../lib/axios.js";
-import { Image, Send, X, Mic, Square, Trash2, Sparkles, Loader2 } from "lucide-react";
+import { Image, Send, X, Mic, Square, Trash2, Sparkles, Loader2, Ghost } from "lucide-react";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -13,6 +13,7 @@ const MessageInput = () => {
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [audioBlob, setAudioBlob] = useState(null);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [isInvisible, setIsInvisible] = useState(false); // New State
   const [finalDuration, setFinalDuration] = useState(0); // Store duration when recording stops
 
   const fileInputRef = useRef(null);
@@ -210,6 +211,7 @@ const MessageInput = () => {
         image: imagePreview,
         audio: audioBase64,
         duration: finalDuration || recordingDuration, // Use captured duration
+        isInvisible,
       });
 
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
@@ -313,15 +315,26 @@ const MessageInput = () => {
             )}
 
             {!isRecording && (
-              <button
-                type="button"
-                className={`absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 rounded-lg sm:rounded-xl transition-all
-                         ${imagePreview ? "text-primary bg-primary/10" : "text-base-content/40 hover:text-primary hover:bg-primary/5"}`}
-                onClick={() => fileInputRef.current?.click()}
-                disabled={audioBlob !== null}
-              >
-                <Image size={18} className="sm:w-5 sm:h-5" />
-              </button>
+              <>
+                <button
+                  type="button"
+                  className={`absolute right-10 sm:right-12 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 rounded-lg sm:rounded-xl transition-all
+                            ${isInvisible ? "text-primary bg-primary/10" : "text-base-content/40 hover:text-primary hover:bg-primary/5"}`}
+                  onClick={() => setIsInvisible(!isInvisible)}
+                  title="Invisible Ink"
+                >
+                  <Ghost size={18} className="sm:w-5 sm:h-5" />
+                </button>
+                <button
+                  type="button"
+                  className={`absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 rounded-lg sm:rounded-xl transition-all
+                            ${imagePreview ? "text-primary bg-primary/10" : "text-base-content/40 hover:text-primary hover:bg-primary/5"}`}
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={audioBlob !== null}
+                >
+                  <Image size={18} className="sm:w-5 sm:h-5" />
+                </button>
+              </>
             )}
           </div>
 

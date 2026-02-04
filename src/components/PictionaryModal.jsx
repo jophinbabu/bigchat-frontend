@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Trophy, Palette, Eraser, Send, Timer, RotateCcw } from "lucide-react";
+import { X, Trophy, Palette, Eraser, Send, Timer, RotateCcw, Check, PenTool } from "lucide-react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import ReactConfetti from 'react-confetti';
 
-const WORDS = ["Apple", "Tree", "Car", "House", "Sun", "Smile", "Ball", "Flower", "Book", "Computer", "Cat", "Dog"];
+const WORDS = ["Apple", "Tree", "Car", "House", "Sun", "Smile", "Ball", "Flower", "Book", "Computer", "Cat", "Dog", "Pizza", "Robot", "Star"];
 
 const PictionaryModal = () => {
     const { closePictionary, selectedUser, pictionaryRole, setPictionaryRole } = useChatStore();
@@ -51,7 +52,6 @@ const PictionaryModal = () => {
             if (data.isCorrect) {
                 setWinner(data.senderId === authUser._id ? "You" : "Partner");
                 setGameState('finished');
-                toast.success(`${data.senderName} guessed the word!`);
             }
         };
 
@@ -91,7 +91,7 @@ const PictionaryModal = () => {
         return () => clearInterval(timer);
     }, [gameState, timeLeft, isDrawer, socket, selectedUser]);
 
-    // --- Canvas Logic (Simplified) ---
+    // --- Canvas Logic ---
     const getCoordinates = (e) => {
         const canvas = canvasRef.current;
         if (!canvas) return { x: 0, y: 0 };
@@ -119,6 +119,7 @@ const PictionaryModal = () => {
         ctx.strokeStyle = color;
         ctx.lineWidth = width;
         ctx.lineCap = "round";
+        ctx.lineJoin = "round";
         ctx.moveTo(lastX, lastY);
         ctx.lineTo(x, y);
         ctx.stroke();
@@ -199,98 +200,163 @@ const PictionaryModal = () => {
         if (isCorrect) {
             setGameState('finished');
             setWinner("You");
-            toast.success("Correct! You won! 🎉");
         }
         setGuessInput("");
     };
 
     return (
-        <div className="fixed inset-0 bg-base-100/90 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-base-300/80 z-50 flex items-center justify-center p-4 backdrop-blur-md">
+            {winner && <ReactConfetti recycle={false} numberOfPieces={500} />}
+
             <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="bg-base-100 w-full max-w-4xl h-[90vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-base-content/10"
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                className="bg-base-100 w-full max-w-5xl h-[92vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden border border-base-content/10 relative"
             >
-                {/* Header */}
-                <div className="p-4 border-b border-base-content/10 flex items-center justify-between">
+                {/* 1. Header Bar */}
+                <div className="px-6 py-4 bg-base-100 flex items-center justify-between z-10 border-b border-base-200">
                     <div className="flex items-center gap-4">
-                        <div className="p-2.5 bg-secondary/10 rounded-xl">
-                            <Palette className="size-6 text-secondary" />
+                        <div className="flex items-center gap-3 bg-secondary/10 px-4 py-2 rounded-2xl">
+                            <Palette className="size-5 text-secondary" />
+                            <span className="font-extrabold text-secondary tracking-wide text-sm md:text-base">PICTIONARY</span>
                         </div>
-                        <div>
-                            <h2 className="font-black text-xl tracking-tight">Pictionary</h2>
-                            <p className="text-xs font-medium opacity-60">
-                                {isDrawer ? "You are Drawing" : "You are Guessing"} vs {selectedUser?.fullName}
-                            </p>
+                        <div className="h-8 w-px bg-base-content/10 mx-2 hidden md:block"></div>
+                        <div className="flex flex-col">
+                            <span className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Opponent</span>
+                            <span className="font-bold text-sm">{selectedUser?.fullName}</span>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        {gameState === 'playing' && (
-                            <div className={`flex items-center gap-2 px-4 py-2 rounded-full font-mono font-bold ${timeLeft < 10 ? 'bg-error/10 text-error' : 'bg-base-200'}`}>
-                                <Timer className="size-4" />
-                                {timeLeft}s
+                    {/* Timer & Status */}
+                    {gameState === 'playing' && (
+                        <div className="absolute left-1/2 -translate-x-1/2 top-4 flex flex-col items-center">
+                            <div className={`flex items-center gap-2 px-5 py-2 rounded-full font-mono font-black text-lg shadow-inner ${timeLeft < 10 ? 'bg-error text-error-content animate-pulse' : 'bg-base-200 text-base-content'}`}>
+                                <Timer className="size-5" />
+                                {timeLeft}
                             </div>
-                        )}
-                        <button onClick={closePictionary} className="btn btn-circle btn-ghost">
-                            <X className="size-6" />
-                        </button>
-                    </div>
+                        </div>
+                    )}
+
+                    <button onClick={closePictionary} className="btn btn-circle btn-ghost btn-sm hover:bg-base-200">
+                        <X className="size-6" />
+                    </button>
                 </div>
 
-                <div className="flex-1 flex flex-col md:flex-row min-h-0">
+                {/* 2. Main Game Area */}
+                <div className="flex-1 flex flex-col md:flex-row min-h-0 relative">
 
-                    {/* DRAWING AREA */}
-                    <div className="flex-1 bg-base-200/50 p-4 relative flex flex-col">
-                        {/* Word Display / Overlay */}
-                        {gameState === 'selecting' && isDrawer && (
-                            <div className="absolute inset-0 bg-base-100/80 z-20 flex flex-col items-center justify-center gap-4">
-                                <h3 className="text-2xl font-bold">Choose a word to draw</h3>
-                                <div className="flex flex-wrap gap-2 justify-center max-w-md">
-                                    {WORDS.map(w => (
-                                        <button key={w} onClick={() => startGame(w)} className="btn btn-primary">{w}</button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                        {gameState === 'selecting' && !isDrawer && (
-                            <div className="absolute inset-0 bg-base-100/80 z-20 flex flex-col items-center justify-center">
-                                <h3 className="text-xl font-bold animate-pulse">Waiting for drawer to pick a word...</h3>
-                            </div>
-                        )}
-                        {gameState === 'finished' && (
-                            <div className="absolute inset-0 bg-base-100/90 z-20 flex flex-col items-center justify-center gap-4">
-                                <Trophy className="size-16 text-yellow-500 mb-2" />
-                                <h3 className="text-3xl font-black">
-                                    {winner === 'timeout' ? "Time's Up!" :
-                                        winner === 'You' || winner === 'Partner' ? `${winner} Won!` : "Game Over"}
-                                </h3>
-                                <p className="text-xl">The word was: <span className="font-bold text-primary">{word}</span></p>
-                                {isDrawer && (
-                                    <button onClick={() => setGameState('selecting')} className="btn btn-outline gap-2 mt-4">
-                                        <RotateCcw className="size-4" /> Play Again
-                                    </button>
-                                )}
-                            </div>
-                        )}
+                    {/* DRAWING CANVAS */}
+                    <div className="flex-1 bg-base-200/50 p-4 md:p-6 relative flex flex-col justify-center items-center">
 
-                        {/* Top Bar (Word or Hints) */}
-                        <div className="bg-base-100 p-2 text-center text-lg font-bold rounded-xl mb-4 shadow-sm border border-base-content/5">
+                        {/* Game Overlays */}
+                        <AnimatePresence>
+                            {/* Word Selection Overlay */}
+                            {gameState === 'selecting' && isDrawer && (
+                                <motion.div
+                                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                    className="absolute inset-0 bg-base-100/90 backdrop-blur-sm z-30 flex flex-col items-center justify-center p-8 text-center"
+                                >
+                                    <h3 className="text-3xl md:text-4xl font-black mb-2">It's Your Turn to Draw! 🎨</h3>
+                                    <p className="text-lg opacity-60 mb-8 max-w-md">Pick a word from the list below. The timer starts as soon as you choose.</p>
+
+                                    <div className="flex flex-wrap gap-3 justify-center max-w-2xl">
+                                        {WORDS.map((w, i) => (
+                                            <motion.button
+                                                key={w}
+                                                whileHover={{ scale: 1.05, y: -2 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0, transition: { delay: i * 0.05 } }}
+                                                onClick={() => startGame(w)}
+                                                className="btn btn-lg btn-primary shadow-lg border-b-4 border-primary-focus active:border-b-0 active:translate-y-1"
+                                            >
+                                                {w}
+                                            </motion.button>
+                                        ))}
+                                    </div>
+                                    <button onClick={() => setPictionaryRole('guesser')} className="btn btn-ghost mt-8 opacity-50">Switch Roles (Testing)</button>
+                                </motion.div>
+                            )}
+
+                            {/* Waiting Overlay */}
+                            {gameState === 'selecting' && !isDrawer && (
+                                <motion.div
+                                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                    className="absolute inset-0 bg-base-100/90 backdrop-blur-sm z-30 flex flex-col items-center justify-center"
+                                >
+                                    <div className="loading loading-bars loading-lg text-secondary mb-4"></div>
+                                    <h3 className="text-2xl font-bold animate-pulse">Waiting for artist to pick a word...</h3>
+                                    <p className="opacity-50">Get your guessing fingers ready!</p>
+                                </motion.div>
+                            )}
+
+                            {/* Game Over Overlay */}
+                            {gameState === 'finished' && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                                    className="absolute inset-0 bg-base-100/95 backdrop-blur-sm z-30 flex flex-col items-center justify-center gap-6 p-8 text-center"
+                                >
+                                    {winner === 'timeout' ? (
+                                        <div className="size-24 bg-base-200 rounded-full flex items-center justify-center mb-2">
+                                            <Timer className="size-12 opacity-50" />
+                                        </div>
+                                    ) : (
+                                        <motion.div
+                                            initial={{ rotate: -10, scale: 0 }} animate={{ rotate: 0, scale: 1 }}
+                                            className="size-24 bg-yellow-100 rounded-full flex items-center justify-center mb-2 ring-4 ring-yellow-400"
+                                        >
+                                            <Trophy className="size-12 text-yellow-500" />
+                                        </motion.div>
+                                    )}
+
+                                    <div>
+                                        <h3 className="text-4xl md:text-5xl font-black mb-2">
+                                            {winner === 'timeout' ? "Time's Up!" :
+                                                winner === 'You' || winner === "Partner" ? `${winner} Won!` : "Game Over"}
+                                        </h3>
+                                        <div className="text-2xl bg-base-200 px-6 py-3 rounded-xl inline-block mt-4 border border-base-300">
+                                            Word: <span className="font-bold text-primary">{word}</span>
+                                        </div>
+                                    </div>
+
+                                    {isDrawer && (
+                                        <button onClick={() => setGameState('selecting')} className="btn btn-lg btn-outline gap-3 mt-4">
+                                            <RotateCcw className="size-5" /> Play Again
+                                        </button>
+                                    )}
+                                    {!isDrawer && <p className="animate-pulse opacity-60">Waiting for host to restart...</p>}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Top Hint Bar */}
+                        <div className="bg-white/80 backdrop-blur-md px-6 py-3 rounded-2xl shadow-sm border border-base-200 mb-6 flex items-center gap-3">
                             {isDrawer ? (
-                                <span>Draw: <span className="text-primary uppercase tracking-widest ml-2">{word}</span></span>
+                                <>
+                                    <h3 className="uppercase text-xs font-bold tracking-widest opacity-50">Drawing</h3>
+                                    <span className="text-2xl font-black text-primary tracking-wide">{word}</span>
+                                </>
                             ) : (
-                                <span>Word: <span className="ml-2 tracking-[0.5em]">{word.split('').map(c => '_').join(' ')}</span> ({word.length} letters)</span>
+                                <>
+                                    <h3 className="uppercase text-xs font-bold tracking-widest opacity-50">Guessing</h3>
+                                    <div className="flex gap-2">
+                                        {word.split('').map((_, i) => (
+                                            <div key={i} className="w-8 h-10 bg-base-200 rounded-md border-b-4 border-base-300"></div>
+                                        ))}
+                                    </div>
+                                    <span className="text-sm font-bold opacity-40 ml-2">({word.length} letters)</span>
+                                </>
                             )}
                         </div>
 
-                        {/* Canvas */}
-                        <div className="flex-1 bg-white rounded-xl shadow-inner border border-base-300 relative overflow-hidden touch-none"
-                            style={{ cursor: isDrawer ? "crosshair" : "default" }}>
+                        {/* Canvas Container */}
+                        <div className="relative w-full max-w-4xl aspect-[4/3] bg-white rounded-2xl shadow-xl overflow-hidden touch-none border-4 border-base-content/5 ring-1 ring-base-content/5">
                             <canvas
                                 ref={canvasRef}
                                 width={800}
                                 height={600}
                                 className="w-full h-full object-contain"
+                                style={{ cursor: isDrawer ? `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'  width='24' height='24' viewport='0 0 100 100' style='fill:black;font-size:30px;'><text y='50%'>✏️</text></svg>") 0 24, auto` : "default" }}
                                 onMouseDown={startDrawing}
                                 onMouseMove={draw}
                                 onMouseUp={stopDrawing}
@@ -301,68 +367,112 @@ const PictionaryModal = () => {
                             />
                         </div>
 
-                        {/* Tools (Drawer Only) */}
-                        {isDrawer && (
-                            <div className="mt-4 bg-base-100 p-2 rounded-2xl shadow-lg border border-base-content/10 flex items-center justify-between">
-                                <div className="flex gap-2">
-                                    <button
-                                        className={`p-3 rounded-xl transition ${tool === 'pen' ? 'bg-primary text-primary-content' : 'hover:bg-base-200'}`}
-                                        onClick={() => setTool('pen')}
-                                    >
-                                        <Palette className="size-5" />
-                                    </button>
-                                    <button
-                                        className={`p-3 rounded-xl transition ${tool === 'eraser' ? 'bg-secondary text-secondary-content' : 'hover:bg-base-200'}`}
-                                        onClick={() => setTool('eraser')}
-                                    >
-                                        <Eraser className="size-5" />
-                                    </button>
-                                </div>
+                        {/* Floating Tools Dock (Drawer Only) */}
+                        <AnimatePresence>
+                            {isDrawer && (
+                                <motion.div
+                                    initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+                                    className="absolute bottom-6 bg-base-100/90 backdrop-blur-xl p-2 pr-6 pl-6 rounded-full shadow-2xl border border-base-content/10 flex items-center gap-6"
+                                >
+                                    <div className="flex bg-base-200 p-1 rounded-full">
+                                        <button
+                                            className={`p-3 rounded-full transition ${tool === 'pen' ? 'bg-primary text-primary-content shadow-md' : 'hover:bg-base-300 text-base-content/50'}`}
+                                            onClick={() => setTool('pen')}
+                                            title="Pen"
+                                        >
+                                            <PenTool className="size-5" />
+                                        </button>
+                                        <button
+                                            className={`p-3 rounded-full transition ${tool === 'eraser' ? 'bg-error text-error-content shadow-md' : 'hover:bg-base-300 text-base-content/50'}`}
+                                            onClick={() => setTool('eraser')}
+                                            title="Eraser"
+                                        >
+                                            <Eraser className="size-5" />
+                                        </button>
+                                    </div>
 
-                                <input
-                                    type="color"
-                                    value={color}
-                                    onChange={(e) => setColor(e.target.value)}
-                                    className="w-10 h-10 rounded-full cursor-pointer border-none bg-transparent"
-                                />
+                                    <div className="h-8 w-px bg-base-content/10"></div>
 
-                                <input
-                                    type="range"
-                                    min="2" max="20"
-                                    value={brushSize}
-                                    onChange={(e) => setBrushSize(e.target.value)}
-                                    className="range range-xs w-24 range-primary"
-                                />
-                            </div>
-                        )}
+                                    {/* Colors */}
+                                    <div className="flex items-center gap-2">
+                                        {['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF'].map(c => (
+                                            <button
+                                                key={c}
+                                                className={`size-6 rounded-full border-2 transition hover:scale-110 ${color === c ? 'border-primary scale-110' : 'border-transparent opacity-80'}`}
+                                                style={{ backgroundColor: c }}
+                                                onClick={() => setColor(c)}
+                                            />
+                                        ))}
+                                        {/* Custom Picker */}
+                                        <div className="relative size-8 rounded-full overflow-hidden border-2 border-base-content/20 hover:scale-105 transition active:scale-95">
+                                            <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                            <div className="w-full h-full" style={{ backgroundColor: color }}></div>
+                                        </div>
+                                    </div>
+
+                                    <div className="h-8 w-px bg-base-content/10"></div>
+
+                                    {/* Brush Size */}
+                                    <div className="flex items-center gap-2 w-24">
+                                        <div className="size-1 rounded-full bg-base-content/50"></div>
+                                        <input
+                                            type="range"
+                                            min="2" max="30"
+                                            value={brushSize}
+                                            onChange={(e) => setBrushSize(e.target.value)}
+                                            className="range range-xs range-secondary flex-1"
+                                        />
+                                        <div className="size-3 rounded-full bg-base-content/50"></div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
 
-                    {/* GUESS AREA (Sidebar) */}
-                    <div className="w-full md:w-80 border-l border-base-content/10 bg-base-100 flex flex-col">
-                        <div className="p-4 border-b border-base-content/5 font-bold uppercase text-xs tracking-widest text-base-content/50">
-                            Game Chat
+                    {/* 3. SIDEBAR (Chat) */}
+                    <div className="w-full md:w-80 bg-base-100 border-l border-base-200 flex flex-col z-20 shadow-xl">
+                        <div className="p-4 bg-base-200/50 border-b border-base-200 font-bold uppercase text-xs tracking-widest text-base-content/50 flex justify-between items-center">
+                            <span>Game Chat</span>
+                            <span className="badge badge-sm badge-neutral">{guesses.length}</span>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                            {guesses.map((g, i) => (
-                                <div key={i} className={`p-2 rounded-lg text-sm ${g.isCorrect ? 'bg-success/20 text-success-content font-bold text-center' : 'bg-base-200'}`}>
-                                    <span className="font-bold opacity-60 mr-2">{g.senderName || "Unknown"}:</span>
-                                    {g.text}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-base-100/50">
+                            {guesses.length === 0 && (
+                                <div className="h-full flex flex-col items-center justify-center text-base-content/30 italic text-sm">
+                                    <Send className="size-8 mb-2 opacity-20" />
+                                    No guesses yet...
                                 </div>
+                            )}
+                            {guesses.map((g, i) => (
+                                <motion.div
+                                    initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
+                                    key={i}
+                                    className={`p-3 rounded-2xl text-sm border shadow-sm ${g.isCorrect ? 'bg-success text-success-content border-success font-bold text-center' : 'bg-base-100 border-base-200'}`}
+                                >
+                                    {!g.isCorrect && <div className="text-xs font-bold opacity-50 mb-1">{g.senderName || "Unknown"}</div>}
+                                    <div className="break-words leading-relaxed">
+                                        {g.isCorrect && <Check className="inline-block size-4 mr-1" />}
+                                        {g.text}
+                                    </div>
+                                </motion.div>
                             ))}
                         </div>
 
-                        <form onSubmit={submitGuess} className="p-4 border-t border-base-content/10">
-                            <div className="relative">
+                        <form onSubmit={submitGuess} className="p-4 bg-base-100 border-t border-base-200">
+                            <div className="relative group">
                                 <input
                                     type="text"
-                                    placeholder={isDrawer ? "Chat is disabled for drawer" : "Type your guess..."}
+                                    placeholder={!isDrawer ? "Type your guess here..." : "Chat disabled for artist"}
                                     value={guessInput}
                                     onChange={(e) => setGuessInput(e.target.value)}
                                     disabled={isDrawer || gameState !== 'playing'}
-                                    className="input input-bordered w-full pr-10"
+                                    className="input input-filled w-full pr-12 bg-base-200 focus:bg-base-100 focus:ring-2 focus:ring-primary transition-all rounded-xl"
                                 />
-                                <button type="submit" disabled={isDrawer} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-primary text-primary-content hover:bg-primary/90 disabled:opacity-50">
+                                <button
+                                    type="submit"
+                                    disabled={isDrawer || !guessInput.trim()}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-primary text-primary-content hover:bg-primary-focus transition-colors disabled:opacity-0 disabled:scale-50"
+                                >
                                     <Send className="size-4" />
                                 </button>
                             </div>

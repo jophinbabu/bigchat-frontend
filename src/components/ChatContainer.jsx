@@ -7,6 +7,7 @@ import MessageSkeleton from "./skeletons/MessageSkeleton";
 import { formatMessageTime } from "../lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, CheckCheck } from "lucide-react";
+import ScratchReveal from "./ScratchReveal";
 
 const ChatContainer = ({ onBack }) => {
   const {
@@ -95,31 +96,49 @@ const ChatContainer = ({ onBack }) => {
                         }
                       `}
                     >
-                      {message.image && (
-                        <motion.img
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          src={message.image}
-                          alt="Attachment"
-                          className="max-w-[200px] sm:max-w-[240px] rounded-xl mb-2 shadow-inner cursor-pointer hover:opacity-95 transition-opacity"
-                        />
-                      )}
-                      {message.text && <p className="text-sm sm:text-[15px] leading-relaxed break-words">{message.text}</p>}
-                      {message.audioUrl && (
-                        <div className="mt-2 min-w-[180px] sm:min-w-[240px]">
-                          {message.duration ? (
-                            <div className="text-xs opacity-50 mb-1 ml-1 flex items-center gap-1">
-                              <span className={`size-1.5 rounded-full ${isMe ? "bg-base-100" : "bg-primary"} animate-pulse`}></span>
-                              Voice Note • {Math.floor(message.duration / 60)}:{(message.duration % 60).toString().padStart(2, '0')}
+                      {message.isInvisible ? (
+                        <ScratchReveal isMe={isMe}>
+                          <div className="filter blur-sm select-none pointer-events-none">
+                            {message.image && (
+                              <img
+                                src={message.image}
+                                alt="Attachment"
+                                className="max-w-[200px] sm:max-w-[240px] rounded-xl mb-2 shadow-inner"
+                              />
+                            )}
+                            {message.text && <p className="text-sm sm:text-[15px] leading-relaxed break-words">{message.text}</p>}
+                            {message.audioUrl && <p className="text-xs italic opacity-70">Voice Note Hidden</p>}
+                          </div>
+                        </ScratchReveal>
+                      ) : (
+                        <>
+                          {message.image && (
+                            <motion.img
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              src={message.image}
+                              alt="Attachment"
+                              className="max-w-[200px] sm:max-w-[240px] rounded-xl mb-2 shadow-inner cursor-pointer hover:opacity-95 transition-opacity"
+                            />
+                          )}
+                          {message.text && <p className="text-sm sm:text-[15px] leading-relaxed break-words">{message.text}</p>}
+                          {message.audioUrl && (
+                            <div className="mt-2 min-w-[180px] sm:min-w-[240px]">
+                              {message.duration ? (
+                                <div className="text-xs opacity-50 mb-1 ml-1 flex items-center gap-1">
+                                  <span className={`size-1.5 rounded-full ${isMe ? "bg-base-100" : "bg-primary"} animate-pulse`}></span>
+                                  Voice Note • {Math.floor(message.duration / 60)}:{(message.duration % 60).toString().padStart(2, '0')}
+                                </div>
+                              ) : null}
+                              <audio
+                                src={`${message.audioUrl}?t=cors_fix`}
+                                controls
+                                crossOrigin="anonymous"
+                                className={`w-full h-10 ${isMe ? "brightness-110" : ""}`}
+                              />
                             </div>
-                          ) : null}
-                          <audio
-                            src={`${message.audioUrl}?t=cors_fix`}
-                            controls
-                            crossOrigin="anonymous"
-                            className={`w-full h-10 ${isMe ? "brightness-110" : ""}`}
-                          />
-                        </div>
+                          )}
+                        </>
                       )}
                     </div>
 

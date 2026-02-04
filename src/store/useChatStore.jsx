@@ -298,6 +298,17 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  sendMessage: async (messageData) => {
+    const { selectedUser, messages } = get();
+    try {
+      // messageData contains { text, image, audio, duration, isInvisible }
+      const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
+      set({ messages: [...messages, res.data] });
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to send message");
+    }
+  },
+
   createGroup: async (name, members) => {
     try {
       const res = await axiosInstance.post("/groups/create", { name, members });
