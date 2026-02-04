@@ -75,51 +75,50 @@ const WhiteboardModal = () => {
         }
     }, [color, lineWidth, tool]);
 
-    const startDrawing = ({ nativeEvent }) => {
-        const { offsetX, offsetY } = nativeEvent;
-        ctxRef.current.beginPath();
-        ctxRef.current.moveTo(offsetX, offsetY);
-        setIsDrawing(true);
-    };
+    // Emit open event on mount
+    useEffect(() => {
+        if (socket && selectedUser) {
+            socket.emit("whiteboard-open", { to: selectedUser._id });
+        }
+    }, []);
 
-    const finishDrawing = () => {
-        ctxRef.current.closePath();
-        setIsDrawing(false);
-    };
-
-    const draw = ({ nativeEvent }) => {
-        if (!isDrawing) return;
-        const { offsetX, offsetY } = nativeEvent;
-
-        // Draw locally
-        ctxRef.current.lineTo(offsetX, offsetY);
-        ctxRef.current.stroke();
-
-        // Emit to peer
-        // We need previous coordinates. Since lineTo connects last point to current, 
-        // we can hack it or store prev coords.
-        // Better approach for smooth lines:
-        // Actually, in `draw` event we are connecting from "last point in path" to "current".
-        // Example logic usually tracks prevX/Y in state or ref.
-
-        // Let's use a ref for previous position to emit correct segments
-        // Wait, lineTo uses the sub-path's last point. We don't have direct access to it easily without tracking.
-        // Let's rely on the native event movement for simple impl, or tracking.
-
+    const getCoords = (nativeEvent) => {
+        if (nativeEvent.touches && nativeEvent.touches.length > 0) {
+            const rect = canvasRef.current.getBoundingClientRect();
+            return {
+                offsetX: nativeEvent.touches[0].clientX - rect.left,
+                offsetY: nativeEvent.touches[0].clientY - rect.top
+            };
+        }
+        return {
+            offsetX: nativeEvent.offsetX,
+            offsetY: nativeEvent.offsetY
+        };
     };
 
     // Re-implementing drawing with specific coordinate tracking for reliable emission
     const lastPos = useRef({ x: 0, y: 0 });
 
-    const startDrawingReliable = ({ nativeEvent }) => {
-        const { offsetX, offsetY } = nativeEvent;
+    const startDrawingReliable = (e) => {
+        // Prevent scrolling on touch devices
+        if (e.type === 'touchstart') {
+            e.preventDefault();
+        }
+
+        const { offsetX, offsetY } = getCoords(e.nativeEvent);
         lastPos.current = { x: offsetX, y: offsetY };
         setIsDrawing(true);
     };
 
-    const drawReliable = ({ nativeEvent }) => {
+    const drawReliable = (e) => {
         if (!isDrawing) return;
-        const { offsetX, offsetY } = nativeEvent;
+
+        // Prevent scrolling on touch devices during drawing
+        if (e.type === 'touchmove') {
+            e.preventDefault();
+        }
+
+        const { offsetX, offsetY } = getCoords(e.nativeEvent);
         const ctx = ctxRef.current;
 
         ctx.beginPath();
@@ -143,6 +142,10 @@ const WhiteboardModal = () => {
         lastPos.current = { x: offsetX, y: offsetY };
     };
 
+    const finishDrawing = () => {
+        if (ctxRef.current) ctxRef.current.closePath();
+        setIsDrawing(false);
+    };
     const clearCanvas = () => {
         const canvas = canvasRef.current;
         ctxRef.current.clearRect(0, 0, canvas.width, canvas.height);
@@ -214,6 +217,9 @@ const WhiteboardModal = () => {
                         onMouseUp={finishDrawing}
                         onMouseMove={drawReliable}
                         onMouseLeave={finishDrawing}
+                        onTouchStart={startDrawingReliable}
+                        onTouchEnd={finishDrawing}
+                        onTouchMove={drawReliable}
                         className="w-full h-full"
                     />
                 </div>
