@@ -98,7 +98,7 @@ const ChatContainer = ({ onBack }) => {
                     >
                       {message.isInvisible ? (
                         <ScratchReveal isMe={isMe}>
-                          <div className="filter blur-sm select-none pointer-events-none">
+                          <div className="select-none pointer-events-none">
                             {message.image && (
                               <img
                                 src={message.image}

@@ -94,7 +94,7 @@ const ScratchReveal = ({ children, isMe }) => {
     return (
         <div ref={containerRef} className="relative overflow-hidden rounded-xl select-none group">
             {/* The Hidden Content */}
-            <div className={`transition-opacity duration-700 ${isRevealed ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'}`}>
+            <div className={`transition-opacity duration-700 ${isRevealed ? 'opacity-100' : 'opacity-0'}`}>
                 {children}
             </div>
 
