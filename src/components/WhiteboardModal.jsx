@@ -96,12 +96,17 @@ const WhiteboardModal = () => {
     }, [color, lineWidth, tool]);
 
     // Emit open event on mount
+    const { authUser } = useAuthStore();
+
     useEffect(() => {
-        if (socket && selectedUser) {
+        if (socket && selectedUser && authUser) {
             console.log('📤 Emitting whiteboard-open to:', selectedUser._id);
-            socket.emit("whiteboard-open", { to: selectedUser._id });
+            socket.emit("whiteboard-open", {
+                to: selectedUser._id,
+                sender: authUser // Send full user object so receiver can select it
+            });
         }
-    }, [socket, selectedUser]);
+    }, [socket, selectedUser, authUser]);
 
     const getCoords = (nativeEvent) => {
         const canvas = canvasRef.current;

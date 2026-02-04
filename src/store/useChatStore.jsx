@@ -140,9 +140,21 @@ export const useChatStore = create((set, get) => ({
       const { selectedUser } = get();
       if (!selectedUser) return;
 
+      // Extract sender ID (handle both string and object formats)
+      const senderId = newMessage.sender?._id || newMessage.sender;
+      const selectedId = selectedUser._id;
+
+      // More robust matching for both DM and Group messages
       const isMessageForCurrentChat =
-        newMessage.conversationId === selectedUser._id || // Group Match
-        newMessage.sender.toString() === selectedUser._id.toString(); // DM Match
+        newMessage.conversationId?.toString() === selectedId.toString() || // Group Match
+        senderId.toString() === selectedId.toString(); // DM Match
+
+      console.log("Message matching check:", {
+        senderId: senderId.toString(),
+        selectedId: selectedId.toString(),
+        conversationId: newMessage.conversationId?.toString(),
+        isForCurrentChat: isMessageForCurrentChat
+      });
 
       if (!isMessageForCurrentChat) {
         // Global listener in useAuthStore handles notifications/unread counts

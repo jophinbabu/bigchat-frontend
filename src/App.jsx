@@ -100,7 +100,13 @@ const App = () => {
     socket.on("whiteboard-open", (data) => {
       console.log('📥 Received whiteboard-open from:', data);
       if (!isWhiteboardOpen) {
-        toast('Partner opened whiteboard', { icon: '🎨' });
+
+        // If we're not talking to this person, switch to them!
+        if (data.sender && useChatStore.getState().selectedUser?._id !== data.sender._id) {
+          useChatStore.getState().setSelectedUser(data.sender);
+        }
+
+        toast(`${data.sender?.fullName || 'Partner'} opened whiteboard`, { icon: '🎨' });
         openWhiteboard();
       }
     });
