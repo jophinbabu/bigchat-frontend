@@ -97,6 +97,7 @@ const App = () => {
     });
 
     socket.on("whiteboard-open", (data) => {
+      console.log('📥 Received whiteboard-open from:', data);
       if (!isWhiteboardOpen) {
         toast('Partner opened whiteboard', { icon: '🎨' });
         openWhiteboard();

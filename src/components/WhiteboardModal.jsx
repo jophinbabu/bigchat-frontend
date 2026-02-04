@@ -98,9 +98,10 @@ const WhiteboardModal = () => {
     // Emit open event on mount
     useEffect(() => {
         if (socket && selectedUser) {
+            console.log('📤 Emitting whiteboard-open to:', selectedUser._id);
             socket.emit("whiteboard-open", { to: selectedUser._id });
         }
-    }, []);
+    }, [socket, selectedUser]);
 
     const getCoords = (nativeEvent) => {
         const canvas = canvasRef.current;
