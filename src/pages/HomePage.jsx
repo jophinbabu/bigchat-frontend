@@ -16,7 +16,7 @@ const HomePage = () => {
   return (
     <div className="h-screen bg-[url('/home_bg.jpg')] bg-cover bg-center bg-no-repeat overflow-hidden relative">
       <div className="absolute inset-0 bg-black/40" />
-      <div className="flex items-center justify-center pt-0 md:pt-20 px-0 md:px-4 h-full relative z-10">
+      <div className="flex items-center justify-center pt-16 md:pt-20 px-0 md:px-4 h-full relative z-10">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
