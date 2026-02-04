@@ -23,23 +23,23 @@ const ChatHeader = ({ onBack }) => {
   return (
     <div className="px-3 sm:px-4 py-3 sm:py-3.5 border-b border-base-300/30 bg-base-100/90 backdrop-blur-xl shadow-sm">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
           {/* Back button - visible on mobile */}
           <button
             onClick={handleBack}
-            className="md:hidden btn btn-ghost btn-circle btn-sm"
+            className="md:hidden btn btn-ghost btn-circle btn-sm flex-shrink-0"
           >
             <ArrowLeft className="size-5" />
           </button>
 
           {/* Avatar */}
-          <div className="avatar">
-            <div className="size-10 rounded-full relative ring-1 ring-base-300/50 flex items-center justify-center bg-base-300 text-base-content/50 overflow-hidden">
+          <div className="avatar flex-shrink-0">
+            <div className="size-9 sm:size-10 rounded-full relative ring-1 ring-base-300/50 flex items-center justify-center bg-base-300 text-base-content/50 overflow-hidden">
               {isGroup ? (
                 selectedUser.groupImage ? (
                   <img src={selectedUser.groupImage} alt={selectedUser.groupName} />
                 ) : (
-                  <Users className="size-6" />
+                  <Users className="size-5 sm:size-6" />
                 )
               ) : (
                 <img src={selectedUser.profilePic || "/avatar.png"} alt={selectedUser.fullName} />
@@ -52,11 +52,11 @@ const ChatHeader = ({ onBack }) => {
           </div>
 
           {/* User/Group Info */}
-          <div>
-            <h3 className="font-semibold text-sm sm:text-base">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-sm sm:text-base truncate">
               {isGroup ? selectedUser.groupName : selectedUser.fullName}
             </h3>
-            <p className="text-xs text-base-content/70">
+            <p className="text-xs text-base-content/70 truncate">
               {isGroup
                 ? `${selectedUser.participants.length} members${onlineCount > 0 ? `, ${onlineCount} online` : ''}`
                 : (onlineUsers.includes(selectedUser._id) ? "Online" : "Offline")
@@ -65,28 +65,30 @@ const ChatHeader = ({ onBack }) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
           {/* Hide Video for Groups for now unless we implement Group Calls */}
           {!isGroup && (
             <>
               <button
                 onClick={() => useChatStore.getState().setIsCalling(true, "audio")}
                 className="btn btn-ghost btn-circle btn-sm text-primary hover:bg-primary/10"
+                title="Voice Call"
               >
-                <Phone className="size-5" />
+                <Phone className="size-4 sm:size-5" />
               </button>
               <button
                 onClick={() => useChatStore.getState().setIsCalling(true, "video")}
                 className="btn btn-ghost btn-circle btn-sm text-primary hover:bg-primary/10"
+                title="Video Call"
               >
-                <Video className="size-5" />
+                <Video className="size-4 sm:size-5" />
               </button>
               <button
                 onClick={() => useChatStore.getState().openWhiteboard()}
                 className="btn btn-ghost btn-circle btn-sm text-primary hover:bg-primary/10"
-                title="Collaborative Whiteboard"
+                title="Whiteboard"
               >
-                <Pen className="size-5" />
+                <Pen className="size-4 sm:size-5" />
               </button>
             </>
           )}
