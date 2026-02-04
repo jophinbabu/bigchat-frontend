@@ -76,7 +76,7 @@ export const useChatStore = create((set, get) => ({
   },
 
   sendMessage: async (messageData) => {
-    const { selectedUser, messages } = get();
+    const { selectedUser, messages, users } = get();
     try {
       // Encrypt text before sending
       const encryptedData = {
@@ -93,6 +93,12 @@ export const useChatStore = create((set, get) => ({
       const newMessage = { ...res.data, text: decryptMessage(res.data.text) };
 
       set({ messages: [...messages, newMessage] });
+
+      // Add selectedUser to users list (sidebar) if not already there
+      const userExists = users.some(u => u._id === selectedUser._id);
+      if (!userExists) {
+        set({ users: [selectedUser, ...users] });
+      }
     } catch (error) {
       toast.error(error.response.data.message);
     }
