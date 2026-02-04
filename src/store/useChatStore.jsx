@@ -24,6 +24,7 @@ export const useChatStore = create((set, get) => ({
   callerSignal: null,     // WebRTC signal data
   callerId: null,         // User ID of the caller
   callType: null,         // "audio" or "video"
+  isWhiteboardOpen: false, // Is the whiteboard modal open?
   typingUser: null,       // User ID of the person typing to us
   unreadCounts: {},       // Track unread message counts per user: { [userId]: count }
 
@@ -290,6 +291,10 @@ export const useChatStore = create((set, get) => ({
       return false;
     }
   },
+
+  // --- Whiteboard Actions ---
+  openWhiteboard: () => set({ isWhiteboardOpen: true }),
+  closeWhiteboard: () => set({ isWhiteboardOpen: false }),
 }));
 
 function urlBase64ToUint8Array(base64String) {

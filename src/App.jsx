@@ -14,12 +14,13 @@ import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import CallModal from "./components/CallModal"; // Import Call Modal
 import IncomingCall from "./components/IncomingCall"; // Import Incoming Call Modal
+import WhiteboardModal from "./components/WhiteboardModal"; // Import Whiteboard Modal
 import { playRingtone, stopRingtone } from "./lib/sounds"; // Import sound utils
 
 const App = () => {
   const { theme } = useThemeStore();
   const { authUser, checkAuth, isCheckingAuth, socket } = useAuthStore();
-  const { isCalling, isReceivingCall, setIncomingCall, resetCall, subscribeToPushNotifications, isCallAccepted } = useChatStore();
+  const { isCalling, isReceivingCall, setIncomingCall, resetCall, subscribeToPushNotifications, isCallAccepted, isWhiteboardOpen, openWhiteboard } = useChatStore();
 
 
 
@@ -95,12 +96,20 @@ const App = () => {
       stopRingtone(); // Stop ringing
     });
 
+    socket.on("whiteboard-open", (data) => {
+      if (!isWhiteboardOpen) {
+        toast('Partner opened whiteboard', { icon: '🎨' });
+        openWhiteboard();
+      }
+    });
+
     return () => {
       socket.off("callUser");
       socket.off("callEnded");
+      socket.off("whiteboard-open");
       stopRingtone(); // Cleanup
     };
-  }, [socket, isCalling, isReceivingCall, setIncomingCall, resetCall]);
+  }, [socket, isCalling, isReceivingCall, setIncomingCall, resetCall, isWhiteboardOpen, openWhiteboard]);
 
   // Loading State
   if (isCheckingAuth && !authUser) {
@@ -133,6 +142,7 @@ const App = () => {
       {/* Call Modals */}
       {showCallModal && <CallModal />}
       {showIncomingCall && <IncomingCall />}
+      {isWhiteboardOpen && <WhiteboardModal />}
 
       <Toaster />
     </div>

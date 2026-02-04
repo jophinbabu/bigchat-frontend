@@ -1,4 +1,4 @@
-import { Video, X, ArrowLeft, Users, Phone } from "lucide-react";
+import { Video, X, ArrowLeft, Users, Phone, Pen } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 
@@ -80,6 +80,13 @@ const ChatHeader = ({ onBack }) => {
                 className="btn btn-ghost btn-circle btn-sm text-primary hover:bg-primary/10"
               >
                 <Video className="size-5" />
+              </button>
+              <button
+                onClick={() => useChatStore.getState().openWhiteboard()}
+                className="btn btn-ghost btn-circle btn-sm text-primary hover:bg-primary/10"
+                title="Collaborative Whiteboard"
+              >
+                <Pen className="size-5" />
               </button>
             </>
           )}
